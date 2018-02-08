@@ -5,10 +5,22 @@
  * Vytvořil: David Hříbek
  * Datum: 8.2.18
  */
-//include XMLWriter;
-include_once XMLWriter::class;
-//$test = new XMLWriter();
-//$test = new Writer();
+
+$writer = new Writer();
+
+$writer->writeInstructionStart('GETCHAR');
+$writer->writeArgumentFull('label', 'franta');
+$writer->writeArgumentFull('label', 'franta');
+$writer->writeArgumentFull('label', 'franta');
+$writer->writeEndElement();
+
+$writer->writeInstructionStart('GETCHAR');
+$writer->writeArgumentFull('label', 'franta');
+$writer->writeArgumentFull('bool', 'FALSE');
+$writer->writeArgumentFull('label', 'franta');
+$writer->writeEndElement();
+
+$writer->writeToStdOut();
 
 class Writer {
     private $xml; // instance XMLWriter
@@ -41,8 +53,8 @@ class Writer {
         $opcode = strtoupper($opcode);
         // vypsani instrukce do XML
         $this->xml->startElement('instruction'); // zapis instrukce
-            $this->xml->writeAttribute('order', $this->instructionOrder); // zapis atributu order
-            $this->xml->writeAttribute('opcode', $opcode); // zapis atributu opcode
+        $this->xml->writeAttribute('order', $this->instructionOrder); // zapis atributu order
+        $this->xml->writeAttribute('opcode', $opcode); // zapis atributu opcode
         $this->instructionOrder++; // inkrementace order pro vypis dalsi instrukce
     }
 
@@ -53,9 +65,18 @@ class Writer {
      *      $value:     Hodnota argumentu
      */
     public function writeArgumentFull($type, $value) {
+        $type = strtolower($type);
         $this->xml->startElement('arg'.$this->instructionArgOrder); // pocatecni element
-        //TODO
+        $this->xml->writeAttribute('type', $type);
+
+        if ($type == 'bool')
+            $value = strtolower($value);
+        //if ($type == 'string')
+            //TODO
+
+        $this->xml->text($value); // hodnota elementu
         $this->xml->endElement(); // ukoncujici element
+        $this->instructionArgOrder++; // inkrementace order pro vypis dalsiho argumentu
     }
 
     /*
@@ -63,5 +84,13 @@ class Writer {
      */
     public function writeEndElement() {
         $this->xml->endElement();
+    }
+
+    /*
+     * Vypis XML na STDOUT
+     */
+    public function writeToStdOut() {
+        $this->xml->endDocument();
+        echo $this->xml->outputMemory();
     }
 }
