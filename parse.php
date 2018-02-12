@@ -5,14 +5,25 @@
  * Vytvořil: David Hříbek
  * Datum: 8.2.18
  */
-checkArguments();
+$stats = new Statistics();
+checkArguments($stats);
+$inst = new Instruction($stats);
 
-$inst = new Instruction();
 
-while ($inst->getNext()) {
-}
+//while ($inst->loadNext()) {}
 
 //$instruction->getNext();
+
+
+
+
+
+
+
+
+
+
+
 
 // test vypisu
 //$writer = new Writer(); // xml writer
@@ -28,32 +39,128 @@ while ($inst->getNext()) {
 //$writer->writeElementEnd();
 //$writer->writeOut();
 
+fprintf(STDERR, "---------------\n");
+fprintf(STDERR, "LOC   : ".$stats->countInstructions."\n");
+fprintf(STDERR, "COMM  : ".$stats->countComments."\n");
+fprintf(STDERR, "Name  : ".$stats->fileName."\n");
 
-
+/*--------------------------------------------------TRIDY/FUNKCE------------------------------------------------------*/
 /*
- * FUnkce pro validaci argumentu scriptu
+ * Funkce pro validaci argumentu scriptu
  */
-function checkArguments() {
+function checkArguments($stats) {
     global $argc, $argv;
-    if ($argc == 1) {
+
+    $errorMsg = "Not allowed arguments!\n";
+
+    $opts = getopt("",["help", "stats:", "comments", "loc"]);
+
+    if ($argc == 1) { // zadny argument
         return; // OK
     }
-    elseif ($argc == 2) {
-        if ($argv[1] == '--help') {
-            echo "HELP TEXT TODO\n"; // TODO STDERR
+    elseif ($argc == 2) { // jeden argument
+        if (array_key_exists('help', $opts)) {
+            fprintf(STDERR,"HELP TEXT TODO\n");
             exit(0);
         }
+        elseif (array_key_exists('stats', $opts)) {
+            $stats->setFileName($opts['stats']);
+            $stats->allowInstructions();
+            $stats->allowComments();
+            return; // OK
+        }
         else {
-            echo $argv[1]." IS NOT ALOWED ARGUMENT\n"; // TODO STDERR
+            fprintf(STDERR, $errorMsg);
             exit(10);
         }
     }
+    elseif ($argc == 3) { // dva argumenty
+        if (array_key_exists('stats', $opts) && array_key_exists('comments', $opts)) {
+            $stats->setFileName($opts['stats']);
+            $stats->allowComments();
+        }
+        elseif (array_key_exists('stats', $opts) && array_key_exists('loc', $opts)) {
+            $stats->setFileName($opts['stats']);
+            $stats->allowInstructions();
+        }
+        else {
+            fprintf(STDERR, $errorMsg);
+            exit(10);
+        }
+    }
+    elseif ($argc == 4) { // tri arguemnty
+        if (array_key_exists('stats', $opts) && array_key_exists('comments', $opts) && array_key_exists('loc', $opts)) {
+            $stats->setFileName($opts['stats']);
+            $stats->allowInstructions();
+            $stats->allowComments();
+        }
+        else {
+            fprintf(STDERR, $errorMsg);
+            exit(10);
+        }
+    }
+    else {
+        fprintf(STDERR,"Bad arguments count!\n");
+        exit(10);
+    }
+}
+
+/*
+ * Zajistuje sber dat o poctu instrukci a komentaru
+ */
+class Statistics {
+    public $countInstructions; // pocet radku s instrukcemi TODO PRIVATE
+    public $countComments; // pocet radku na kterych se vyskytoval komentar TODO PRIVATE
+
+    private $allowInstructions;
+    private $allowComments;
+
+    public $fileName; // TODO PRIVATE
+
+    public function __construct() {
+        $this->allowInstructions = false;
+        $this->allowComments = false;
+
+        $this->countInstructions = 0;
+        $this->countComments = 0;
+
+    }
+
+    public function setFileName($name) {
+        $this->fileName = $name;
+    }
+
+    public function addInstruction() {
+        $this->countInstructions++;
+    }
+
+    public function subInstruction() {
+        $this->countInstructions--;
+    }
+
+    public function addComment() {
+        $this->countComments++;
+    }
+
+    public function allowInstructions() {
+        $this->allowInstructions = true;
+    }
+
+    public function allowComments() {
+        $this->allowComments = true;
+    }
+
+    public function printStatistics() {
+        // TODO
+    }
+
 }
 
 /*
  * Zpracovani instrukce
  */
 class Instruction {
+    private $stats; // statistiky
     // instrukce
     private $iName; // nazev instrukce
 
@@ -65,41 +172,37 @@ class Instruction {
     public $iArg2v; // hodnota arg2
     public $iArg3v; // hodnota arg3
 
-    // statistitky
-    private $countLine; // pocet radku s instrukcemi
-    private $countEmptyLine; // pocet prazdnych radku *asi se nepouzije*
-    private $countCommentLine; // pocet radku na kterych se vyskytoval komentar
-
-    /*
-     * Konstruktor
-     */
-    public function Instruction() {
-        $this->countLine = 0;
-        $this->countEmptyLine = 0;
+    public function __construct($stats) {
+        $this->countInstLine = 0;
         $this->countCommentLine = 0;
+        $this->stats = $stats;
     }
 
     /*
-     * Nacte instrukci ze vstupu
+     * Nacte instrukci z STDIN
      * Vraci:   Pocet argumentu    Pokud je instrukce syntakticky spravne
      *          FALSE   Jinak
      */
-    public function getNext() {
+    public function loadNext() {
         $this->unsetInstructionVariables();
 
-        if ($line = stream_get_line(STDIN,0, "\n"))
-            $this->countLine++;
+//        if ($line = stream_get_line(STDIN,0, "\n"))
+        if ( $line = fgets(STDIN) ) {
+            if ($line != "\n")
+                $this->stats->addInstruction();
+        }
         else
             return false; // pokud neni co cist ze STDIN
 
-
         $line = preg_replace('/\s+/', ' ', $line); // odstraneni prebytecnych bilych znaku
         $line = trim($line); // odstraneni bilych znaku z okraju
-
         $items = explode(' ', $line);
         $items = $this->removeComments($items);
-        var_dump($items);
 
+        if (empty($items) || $items[0] == "") // pokud na radku neni instrukce, nacteme dalsi radek
+            $this->loadNext();
+        else
+            var_dump($items);
         return true;
     }
 
@@ -111,12 +214,14 @@ class Instruction {
         $newItems = [];
         foreach ($items as $item) {
             if ( ereg('^#.*', $item) ) {
-                $this->countCommentLine++;
-                return $newItems;
+                $this->stats->addComment();
+                break; // vse za znakem # zahazujeme
             }
             else
                 array_push($newItems, $item);
         }
+        if (empty($newItems)) // pokud radek obsahuje pouze komentare, nepocita se mezi instrukce
+            $this->stats->subInstruction();
         return $newItems;
     }
 
