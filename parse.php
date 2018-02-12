@@ -7,7 +7,12 @@
  */
 checkArguments();
 
+$inst = new Instruction();
 
+while ($inst->getNext()) {
+}
+
+//$instruction->getNext();
 
 // test vypisu
 //$writer = new Writer(); // xml writer
@@ -24,6 +29,10 @@ checkArguments();
 //$writer->writeOut();
 
 
+
+/*
+ * FUnkce pro validaci argumentu scriptu
+ */
 function checkArguments() {
     global $argc, $argv;
     if ($argc == 1) {
@@ -35,12 +44,101 @@ function checkArguments() {
             exit(0);
         }
         else {
-            echo "NOT ALOWED ARGUMENTS\n"; // TODO STDERR
+            echo $argv[1]." IS NOT ALOWED ARGUMENT\n"; // TODO STDERR
             exit(10);
         }
     }
 }
 
+/*
+ * Zpracovani instrukce
+ */
+class Instruction {
+    // instrukce
+    private $iName; // nazev instrukce
+
+    public $iArg1t; // typ arg1
+    public $iArg2t; // typ arg2
+    public $iArg3t; // typ arg3
+
+    public $iArg1v; // hodnota arg1
+    public $iArg2v; // hodnota arg2
+    public $iArg3v; // hodnota arg3
+
+    // statistitky
+    private $countLine; // pocet radku s instrukcemi
+    private $countEmptyLine; // pocet prazdnych radku *asi se nepouzije*
+    private $countCommentLine; // pocet radku na kterych se vyskytoval komentar
+
+    /*
+     * Konstruktor
+     */
+    public function Instruction() {
+        $this->countLine = 0;
+        $this->countEmptyLine = 0;
+        $this->countCommentLine = 0;
+    }
+
+    /*
+     * Nacte instrukci ze vstupu
+     * Vraci:   Pocet argumentu    Pokud je instrukce syntakticky spravne
+     *          FALSE   Jinak
+     */
+    public function getNext() {
+        $this->unsetInstructionVariables();
+
+        if ($line = stream_get_line(STDIN,0, "\n"))
+            $this->countLine++;
+        else
+            return false; // pokud neni co cist ze STDIN
+
+
+        $line = preg_replace('/\s+/', ' ', $line); // odstraneni prebytecnych bilych znaku
+        $line = trim($line); // odstraneni bilych znaku z okraju
+
+        $items = explode(' ', $line);
+        $items = $this->removeComments($items);
+        var_dump($items);
+
+        return true;
+    }
+
+    /*
+     * Odstrani komentare radku, sbira statistiky o poctu komentaru atd..
+     * Vraci:   Pole slov bez komentaru
+     */
+    private function removeComments($items) {
+        $newItems = [];
+        foreach ($items as $item) {
+            if ( ereg('^#.*', $item) ) {
+                $this->countCommentLine++;
+                return $newItems;
+            }
+            else
+                array_push($newItems, $item);
+        }
+        return $newItems;
+    }
+
+    /*
+     * Inicializace promennych instrukce
+     */
+    private function unsetInstructionVariables() {
+        unset($this->iName);
+
+        unset($this->iArg1t);
+        unset($this->iArg2t);
+        unset($this->iArg3t);
+
+        unset($this->iArg1v);
+        unset($this->iArg2v);
+        unset($this->iArg3v);
+    }
+}
+
+/*
+ * Trida pro zjednoduseni generovani XML
+ */
 class Writer {
     private $xml; // instance XMLWriter
     private $instructionOrder; // pocitadlo poradi instrukci
