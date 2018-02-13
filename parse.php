@@ -14,7 +14,7 @@ while ($argCount = $inst->loadNext()) {
     if (isset($inst->iName)) {
         $writer->writeInstructionStart($inst->iName); // zacatek elementu instruction
         echo $inst->iName."\n";
-//        var_dump($inst->iArgs);
+        var_dump($inst->iArgs);
         foreach ($inst->iArgs as $arg) {
             foreach ($arg as $type => $value)
                 $writer->writeArgumentStartEnd($type, $value); // vypis jednotlivych argumentu
@@ -149,12 +149,15 @@ class Statistics {
  */
 class Instruction {
     private $stats; // statistiky
+    private $called;
 
     public $iName; // nazev instrukce
     public $iArgs; // argumenty instrukce
 
+
     public function __construct($stats) {
         $this->stats = $stats;
+        $this->called = 0;
     }
 
     /*
@@ -162,6 +165,7 @@ class Instruction {
      * @return  true, false pokud neni co cist
      */
     public function loadNext() {
+        $this->called++;
         $this->unsetInstructionVariables();
 
         if ( $line = fgets(STDIN) ) {
@@ -175,6 +179,17 @@ class Instruction {
         $line = trim($line); // odstraneni bilych znaku z okraju
         $items = explode(' ', $line);
         $items = $this->removeComments($items);
+
+        if ($this->called == 1) { // kontrola prvni radku
+            $items[0] = strtoupper($items[0]);
+            if (((count($items) == 1) && ($items[0] == '.IPPCODE18'))) {
+                return true; // cti dalsi insturkci
+            }
+            else {
+                fprintf(STDERR, "Missing first line!\n");
+                exit(21);
+            }
+        }
 
         if (empty($items) || $items[0] == "") // pokud na radku neni instrukce, nacteme dalsi radek
             $this->loadNext();
@@ -195,9 +210,8 @@ class Instruction {
      * @return  true/false
      */
     private function checkSyntax($items) {
-//        var_dump($items);
-        if (!(count($items) >= 1 && count($items) <= 4))
-            return false; // NESPRAVNY POCET ARGUMENTU
+        if (!(count($items) >= 1 && count($items) <= 4)) // NESPRAVNY POCET ARGUMENTU
+            return false;
 
         switch ($items[0] = strtoupper($items[0])) {
             case 'MOVE':        // <var> <symb>             OK
