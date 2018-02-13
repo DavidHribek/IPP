@@ -26,18 +26,16 @@ while ($argCount = $inst->loadNext()) {
 fprintf(STDERR, "\n------START-------\n");
 $writer->writeOut(); // Vypis XML na STDOUT
 fprintf(STDERR, "------STATS-------\n");
+$stats->writeOut();
 fprintf(STDERR, "LOC   : ".$stats->countInstructions."\n");
 fprintf(STDERR, "COMM  : ".$stats->countComments."\n");
-fprintf(STDERR, "Name  : ".$stats->fileName."\n");
 fprintf(STDERR, "-------END-------\n\n");
-
-
 /*--------------------------------------------------TRIDY/FUNKCE------------------------------------------------------*/
 /*
- * Funkce pro validaci argumentu scriptu
+ * Validace argumentu scriptu
  */
 function checkArguments($stats) {
-    global $argc, $argv;
+    global $argc;
 
     $errorMsg = "Not allowed arguments!\n";
 
@@ -94,7 +92,7 @@ function checkArguments($stats) {
 }
 
 /*
- * Zajistuje sber dat o poctu instrukci a komentaru kodu
+ * Sber dat o poctu instrukci a komentaru v kodu
  */
 class Statistics {
     public $countInstructions; // pocet radku s instrukcemi TODO PRIVATE
@@ -103,7 +101,7 @@ class Statistics {
     private $allowInstructions;
     private $allowComments;
 
-    public $fileName; // TODO PRIVATE
+    private $fileName;
 
     public function __construct() {
         $this->allowInstructions = false;
@@ -113,7 +111,9 @@ class Statistics {
         $this->countComments = 0;
 
     }
-
+    /*
+     * Nastavi jmeno souboru pro vypis statistik
+     */
     public function setFileName($name) {
         $this->fileName = $name;
     }
@@ -130,22 +130,41 @@ class Statistics {
         $this->countComments++;
     }
 
+    /*
+     * Povoli vypis instrukci
+     */
     public function allowInstructions() {
         $this->allowInstructions = true;
     }
 
+    /*
+     * Povoli vypis komentaru
+     */
     public function allowComments() {
         $this->allowComments = true;
     }
 
-    public function printStatistics() {
-        // TODO
+    /*
+     * Vytvori novy soubor s nazvem $fileName a zapise statisitky (pokud byly zadany v parametrech scriptu)
+     */
+    public function writeOut() {
+        global $argv;
+        if ($this->allowInstructions || $this->allowComments) {
+            $toWrite = "";
+            foreach ($argv as $opt) {
+                if ($opt == '--loc')
+                    $toWrite = $toWrite.$this->countInstructions."\n";
+                if ($opt == '--comments')
+                    $toWrite = $toWrite.$this->countComments."\n";
+            }
+            file_put_contents($this->fileName, rtrim($toWrite));
+        }
     }
 
 }
 
 /*
- * Zpracovani instrukce
+ * Trida pro zpracovani instrukci
  */
 class Instruction {
     private $stats; // statistiky
@@ -522,7 +541,7 @@ class Instruction {
 }
 
 /*
- * Trida pro zjednoduseni generovani XML
+ * Trida pro zjednoduseni generovani XML pro dany jazyk
  */
 class Writer {
     private $xml; // instance XMLWriter
