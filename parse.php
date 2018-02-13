@@ -5,44 +5,32 @@
  * Vytvořil: David Hříbek
  * Datum: 8.2.18
  */
-$stats = new Statistics();
-checkArguments($stats);
-$inst = new Instruction($stats);
+$stats = new Statistics(); // Objekt pro sbirani dat o kodu (instrukce, komentare)
+checkArguments($stats); // Kontrola argumentu scriptu
+$inst = new Instruction($stats); // Objekt pro synt. a lexx. analyzu instrukci
+$writer = new Writer(); // Objekt pro zapis XML
 
-
-//while ($inst->loadNext()) {}
-
-//$instruction->getNext();
-
-
-
-
-
-
-
-
-
-
-
-
-// test vypisu
-//$writer = new Writer(); // xml writer
-//$writer->writeInstructionStart('DEFVAR');
-//
-//$writer->writeArgumentStartEnd('label', 'while');
-//$writer->writeArgumentStartEnd('type', 'int');
-//$writer->writeArgumentStartEnd('var', 'gf@cislo');
-//$writer->writeArgumentStartEnd('int', '42');
-//$writer->writeArgumentStartEnd('bool', 'True');
-//$writer->writeArgumentStartEnd('string', 'counter\032obsahuje\032');
-//
-//$writer->writeElementEnd();
-//$writer->writeOut();
-
-fprintf(STDERR, "---------------\n");
+while ($argCount = $inst->loadNext()) {
+    if (isset($inst->iName)) {
+        $writer->writeInstructionStart($inst->iName); // zacatek elementu instruction
+        echo $inst->iName."\n";
+//        var_dump($inst->iArgs);
+        foreach ($inst->iArgs as $arg) {
+            foreach ($arg as $type => $value)
+                $writer->writeArgumentStartEnd($type, $value); // vypis jednotlivych argumentu
+        }
+        $writer->writeElementEnd(); // konec elementu instruction
+    }
+}
+// vypis
+fprintf(STDERR, "\n------START-------\n");
+$writer->writeOut(); // Vypis XML na STDOUT
+fprintf(STDERR, "------STATS-------\n");
 fprintf(STDERR, "LOC   : ".$stats->countInstructions."\n");
 fprintf(STDERR, "COMM  : ".$stats->countComments."\n");
 fprintf(STDERR, "Name  : ".$stats->fileName."\n");
+fprintf(STDERR, "-------END-------\n\n");
+
 
 /*--------------------------------------------------TRIDY/FUNKCE------------------------------------------------------*/
 /*
@@ -106,7 +94,7 @@ function checkArguments($stats) {
 }
 
 /*
- * Zajistuje sber dat o poctu instrukci a komentaru
+ * Zajistuje sber dat o poctu instrukci a komentaru kodu
  */
 class Statistics {
     public $countInstructions; // pocet radku s instrukcemi TODO PRIVATE
@@ -161,32 +149,21 @@ class Statistics {
  */
 class Instruction {
     private $stats; // statistiky
-    // instrukce
-    private $iName; // nazev instrukce
 
-    public $iArg1t; // typ arg1
-    public $iArg2t; // typ arg2
-    public $iArg3t; // typ arg3
-
-    public $iArg1v; // hodnota arg1
-    public $iArg2v; // hodnota arg2
-    public $iArg3v; // hodnota arg3
+    public $iName; // nazev instrukce
+    public $iArgs; // argumenty instrukce
 
     public function __construct($stats) {
-        $this->countInstLine = 0;
-        $this->countCommentLine = 0;
         $this->stats = $stats;
     }
 
     /*
      * Nacte instrukci z STDIN
-     * Vraci:   Pocet argumentu    Pokud je instrukce syntakticky spravne
-     *          FALSE   Jinak
+     * @return  true, false pokud neni co cist
      */
     public function loadNext() {
         $this->unsetInstructionVariables();
 
-//        if ($line = stream_get_line(STDIN,0, "\n"))
         if ( $line = fgets(STDIN) ) {
             if ($line != "\n")
                 $this->stats->addInstruction();
@@ -201,14 +178,310 @@ class Instruction {
 
         if (empty($items) || $items[0] == "") // pokud na radku neni instrukce, nacteme dalsi radek
             $this->loadNext();
-        else
-            var_dump($items);
+        else {
+            if ($this->checkSyntax($items)) {
+                return true;
+            }
+            else {
+                fprintf(STDERR, "Syntax or lexical Error!\n");
+                exit(21);
+            }
+        }
         return true;
     }
 
     /*
+     * Zkontroluje syntaxi dane instrukce, inicializuje promenne $iName a $iArgs
+     * @return  true/false
+     */
+    private function checkSyntax($items) {
+//        var_dump($items);
+        if (!(count($items) >= 1 && count($items) <= 4))
+            return false; // NESPRAVNY POCET ARGUMENTU
+
+        switch ($items[0] = strtoupper($items[0])) {
+            case 'MOVE':        // <var> <symb>             OK
+                if (count($items) == 3) {
+                    $this->iName = $items[0];
+                    return $this->checkVar($items[1]) && $this->checkSymb($items[2]);
+                }
+                break;
+            case 'CREATEFRAME': // none                     OK
+                if (count($items) == 1) {
+                    $this->iName = $items[0];
+                    return true;
+                }
+                break;
+            case 'PUSHFRAME':   // none                     OK
+                if (count($items) == 1) {
+                    $this->iName = $items[0];
+                    return true;
+                }
+                break;
+            case 'POPFRAME':    // none                     OK
+                if (count($items) == 1) {
+                    $this->iName = $items[0];
+                    return true;
+                }
+                break;
+            case 'DEFVAR':      // <var>                    OK
+                if (count($items) == 2) {
+                    $this->iName = $items[0];
+                    return $this->checkVar($items[1]);
+                }
+                break;
+            case 'CALL':        // <label>                  OK
+                if (count($items) == 2) {
+                    $this->iName = $items[0];
+                    return $this->checkLabel($items[1]);
+                }
+                break;
+            case 'RETURN':      // none                     OK
+                if (count($items) == 1) {
+                    $this->iName = $items[0];
+                    return true;
+                }
+                break;
+            case 'PUSHS':       // <symb>                   OK
+                if (count($items) == 2) {
+                    $this->iName = $items[0];
+                    return $this->checkSymb($items[1]);
+                }
+                break;
+            case 'POPS':        // <var>                    OK
+                if (count($items) == 2) {
+                    $this->iName = $items[0];
+                    return $this->checkVar($items[1]);
+                }
+                break;
+            case 'ADD':         // <var> <symb1> <symb2>    OK
+                if (count($items) == 4) {
+                    $this->iName = $items[0];
+                    return $this->checkVar($items[1]) && $this->checkSymb($items[2]) && $this->checkSymb($items[3]);
+                }
+                break;
+            case 'SUB':         // <var> <symb1> <symb2>    OK
+                if (count($items) == 4) {
+                    $this->iName = $items[0];
+                    return $this->checkVar($items[1]) && $this->checkSymb($items[2]) && $this->checkSymb($items[3]);
+                }
+                break;
+            case 'MUL':         // <var> <symb1> <symb2>    OK
+                if (count($items) == 4) {
+                    $this->iName = $items[0];
+                    return $this->checkVar($items[1]) && $this->checkSymb($items[2]) && $this->checkSymb($items[3]);
+                }
+                break;
+            case 'IDIV':        // <var> <symb1> <symb2>    OK
+                if (count($items) == 4) {
+                    $this->iName = $items[0];
+                    return $this->checkVar($items[1]) && $this->checkSymb($items[2]) && $this->checkSymb($items[3]);
+                }
+                break;
+            case 'LT':          // <var> <symb1> <symb2>    OK
+                if (count($items) == 4) {
+                    $this->iName = $items[0];
+                    return $this->checkVar($items[1]) && $this->checkSymb($items[2]) && $this->checkSymb($items[3]);
+                }
+                break;
+            case 'GT':          // <var> <symb1> <symb2>    OK
+                if (count($items) == 4) {
+                    $this->iName = $items[0];
+                    return $this->checkVar($items[1]) && $this->checkSymb($items[2]) && $this->checkSymb($items[3]);
+                }
+                break;
+            case 'EQ':          // <var> <symb1> <symb2>    OK
+                if (count($items) == 4) {
+                    $this->iName = $items[0];
+                    return $this->checkVar($items[1]) && $this->checkSymb($items[2]) && $this->checkSymb($items[3]);
+                }
+                break;
+            case 'AND':         // <var> <symb1> <symb2>    OK
+                if (count($items) == 4) {
+                    $this->iName = $items[0];
+                    return $this->checkVar($items[1]) && $this->checkSymb($items[2]) && $this->checkSymb($items[3]);
+                }
+                break;
+            case 'OR':          // <var> <symb1> <symb2>    OK
+                if (count($items) == 4) {
+                    $this->iName = $items[0];
+                    return $this->checkVar($items[1]) && $this->checkSymb($items[2]) && $this->checkSymb($items[3]);
+                }
+                break;
+            case 'NOT':         // <var> <symb>             OK
+                if (count($items) == 3) {
+                    $this->iName = $items[0];
+                    return $this->checkVar($items[1]) && $this->checkSymb($items[2]);
+                }
+                break;
+            case 'INT2CHAR':    // <var> <symb>             OK
+                if (count($items) == 3) {
+                    $this->iName = $items[0];
+                    return $this->checkVar($items[1]) && $this->checkSymb($items[2]);
+                }
+                break;
+            case 'STRI2INT':    // <var> <symb1> <symb2>    OK
+                if (count($items) == 4) {
+                    $this->iName = $items[0];
+                    return $this->checkVar($items[1]) && $this->checkSymb($items[2]) && $this->checkSymb($items[3]);
+                }
+                break;
+            case 'READ':        // <var> <type>             OK
+                if (count($items) == 3) {
+                    $this->iName = $items[0];
+                    return $this->checkVar($items[1]) && $this->checkType($items[2]);
+                }
+                break;
+            case 'WRITE':       // <symb>                   OK
+                if (count($items) == 2) {
+                    $this->iName = $items[0];
+                    return $this->checkSymb($items[1]);
+                }
+                break;
+            case 'CONCAT':      // <var> <symb1> <symb2>    OK
+                if (count($items) == 4) {
+                    $this->iName = $items[0];
+                    return $this->checkVar($items[1]) && $this->checkSymb($items[2]) && $this->checkSymb($items[3]);
+                }
+                break;
+            case 'STRLEN':      // <var> <symb>             OK
+                if (count($items) == 3) {
+                    $this->iName = $items[0];
+                    return $this->checkVar($items[1]) && $this->checkSymb($items[2]);
+                }
+                break;
+            case 'GETCHAR':     // <var> <symb1> <symb2>    OK
+                if (count($items) == 4) {
+                    $this->iName = $items[0];
+                    return $this->checkVar($items[1]) && $this->checkSymb($items[2]) && $this->checkSymb($items[3]);
+                }
+                break;
+            case 'SETCHAR':     // <var> <symb1> <symb2>    OK
+                if (count($items) == 4) {
+                    $this->iName = $items[0];
+                    return $this->checkVar($items[1]) && $this->checkSymb($items[2]) && $this->checkSymb($items[3]);
+                }
+                break;
+            case 'TYPE':        // <var> <symb>             OK
+                if (count($items) == 3) {
+                    $this->iName = $items[0];
+                    return $this->checkVar($items[1]) && $this->checkSymb($items[2]);
+                }
+                break;
+            case 'LABEL':       // <label>                  OK
+                if (count($items) == 2) {
+                    $this->iName = $items[0];
+                    return $this->checkLabel($items[1]);
+                }
+                break;
+            case 'JUMP':        // <label>                  OK
+                if (count($items) == 2) {
+                    $this->iName = $items[0];
+                    return $this->checkLabel($items[1]);
+                }
+                break;
+            case 'JUMPIFEQ':    // <label> <symb1> <symb2>    OK
+                if (count($items) == 4) {
+                    $this->iName = $items[0];
+                    return $this->checkLabel($items[1]) && $this->checkSymb($items[2]) && $this->checkSymb($items[3]);
+                }
+                break;
+            case 'JUMPIFNEQ':   // <label> <symb1> <symb2>    OK
+                if (count($items) == 4) {
+                    $this->iName = $items[0];
+                    return $this->checkLabel($items[1]) && $this->checkSymb($items[2]) && $this->checkSymb($items[3]);
+                }
+                break;
+            case 'DPRINT':      // <symb>                   OK
+                if (count($items) == 2) {
+                    $this->iName = $items[0];
+                    return $this->checkSymb($items[1]);
+                }
+                break;
+            case 'BREAK':       // none                     OK
+                if (count($items) == 1) {
+                    $this->iName = $items[0];
+                    return true;
+                }
+                break;
+            default:
+                return false;
+        }
+        return false;
+    }
+
+    /*
+     * Kontrola syntaxe symbolu
+     * @return  true/false
+     */
+    private function checkSymb($symb) {
+        if (preg_match('/^(int|bool|string)@.*$/', $symb)) { // TODO GF LF TF sensitive
+            $symb = explode('@', $symb);
+            if ($symb[0] == 'int') {
+                if (preg_match('/^([+-][1-9][0-9]*|[+-]0)$/', $symb[1])) {
+                    array_push($this->iArgs, [$symb[0] => $symb[1]]);
+                    return true;
+                }
+            }
+            elseif ($symb[0] == 'bool') {
+                if (preg_match('/^(true|false)$/', $symb[1])) { // TODO sensitive
+                    array_push($this->iArgs, [$symb[0] => $symb[1]]);
+                    return true;
+                }
+            }
+            else { // 'string'
+                // TODO
+                return true;
+            }
+        }
+        elseif (preg_match('/^(GF|LF|TF)@.*$/', $symb)) {
+            return $this->checkVar($symb);
+        }
+        return false;
+    }
+
+    /*
+     * Kontrola syntaxe navesti
+     * @return  true/false
+     */
+    private function checkLabel($label) {
+        if (preg_match('/^(_|-|\$|&|\*|\w)[\d\w]*$/', $label)) {
+            array_push($this->iArgs, ['label' => $label]);
+            return true;
+        }
+        else
+            return false;
+    }
+
+    /*
+     * Kontrola syntaxe typu
+     * @return  true/false
+     */
+    private function checkType($type) {
+        if (preg_match('/^(int|bool|string)$/', $type)) { // TODO GF LF TF sensitive
+            array_push($this->iArgs, ['type' => $type]);
+            return true;
+        }
+        else
+            return false;
+    }
+
+    /*
+     * Kontrola syntaxe promenne
+     * @return  true/false
+     */
+    private function checkVar($var) {
+        if (preg_match('/^(GF|LF|TF)@(_|-|\$|&|\*|\w)[\d\w]*$/', $var)) { // TODO GF LF TF sensitive
+            array_push($this->iArgs, ['var' => $var]);
+            return true;
+        }
+        else
+            return false;
+    }
+
+    /*
      * Odstrani komentare radku, sbira statistiky o poctu komentaru atd..
-     * Vraci:   Pole slov bez komentaru
+     * @return   Pole retezcu bez komentaru
      */
     private function removeComments($items) {
         $newItems = [];
@@ -230,14 +503,7 @@ class Instruction {
      */
     private function unsetInstructionVariables() {
         unset($this->iName);
-
-        unset($this->iArg1t);
-        unset($this->iArg2t);
-        unset($this->iArg3t);
-
-        unset($this->iArg1v);
-        unset($this->iArg2v);
-        unset($this->iArg3v);
+        $this->iArgs = [];
     }
 }
 
