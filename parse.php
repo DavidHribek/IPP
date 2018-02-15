@@ -22,13 +22,11 @@ while ($argCount = $inst->loadNext()) {
     }
 }
 // vypis
-fprintf(STDERR, "\n------START-------\n");
 $writer->writeOut(); // Vypis XML na STDOUT
-fprintf(STDERR, "------STATS-------\n");
+fprintf(STDERR, "\n------STATS-------\n");
 $stats->writeOut();
 fprintf(STDERR, "LOC   : ".$stats->countInstructions."\n");
 fprintf(STDERR, "COMM  : ".$stats->countComments."\n");
-fprintf(STDERR, "-------END-------\n\n");
 /*--------------------------------------------------TRIDY/FUNKCE------------------------------------------------------*/
 /*
  * Validace argumentu scriptu
@@ -207,6 +205,7 @@ class Instruction {
             else {
                 $items[0] = strtoupper($items[0]);
                 if (((count($items) == 1) && ($items[0] == '.IPPCODE18'))) {
+                    $this->stats->subInstruction(); // .ippcode18 se nepocita mezi instrukce
                     return true; // cti dalsi instrukci
                 } else {
                     fprintf(STDERR, "Missing first line .IPPcode18!\n");

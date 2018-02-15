@@ -1,0 +1,10 @@
+.IPPcode18 #PUSHS a POPS, vypis, prazdne radky, komentare
+PUSHS int@20
+PUSHS int@220 #druhy komentar
+DEFVAR GF@prom
+POPS GF@prom
+WRITE GF@prom #komentar\032\010
+#jen komentar
+
+
+#konec souboru
