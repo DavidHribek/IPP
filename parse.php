@@ -13,8 +13,7 @@ $writer = new Writer(); // Objekt pro zapis XML
 while ($argCount = $inst->loadNext()) {
     if (isset($inst->iName)) {
         $writer->writeInstructionStart($inst->iName); // zacatek elementu instruction
-        echo $inst->iName."\n";
-        var_dump($inst->iArgs);
+        //echo $inst->iName."\n";
         foreach ($inst->iArgs as $arg) {
             foreach ($arg as $type => $value)
                 $writer->writeArgumentStartEnd($type, $value); // vypis jednotlivych argumentu
@@ -51,8 +50,6 @@ function checkArguments($stats) {
         }
         elseif (array_key_exists('stats', $opts)) {
             $stats->setFileName($opts['stats']);
-            $stats->allowInstructions();
-            $stats->allowComments();
             return; // OK
         }
         else {
@@ -196,17 +193,22 @@ class Instruction {
 
         $line = preg_replace('/\s+/', ' ', $line); // odstraneni prebytecnych bilych znaku
         $line = trim($line); // odstraneni bilych znaku z okraju
+        $line = $this->removeComments($line);
         $items = explode(' ', $line);
-        $items = $this->removeComments($items);
 
-        if ($this->called == 1) { // kontrola prvni radku
-            $items[0] = strtoupper($items[0]);
-            if (((count($items) == 1) && ($items[0] == '.IPPCODE18'))) {
-                return true; // cti dalsi insturkci
+        if ($this->called == 1) { // kontrola prvniho radku
+            if (empty($items)) {
+                fprintf(STDERR, "Missing first line .IPPcode18!\n");
+                exit(21);
             }
             else {
-                fprintf(STDERR, "Missing first line!\n");
-                exit(21);
+                $items[0] = strtoupper($items[0]);
+                if (((count($items) == 1) && ($items[0] == '.IPPCODE18'))) {
+                    return true; // cti dalsi insturkci
+                } else {
+                    fprintf(STDERR, "Missing first line .IPPcode18!\n");
+                    exit(21);
+                }
             }
         }
 
@@ -444,27 +446,29 @@ class Instruction {
     }
 
     /*
-     * Kontrola syntaxe symbolu
+     * Kontrola syntaxe symbolu, vlozeni syntakticky spravneho argumentu do $iArgs
      * @return  true/false
      */
     private function checkSymb($symb) {
-        if (preg_match('/^(int|bool|string)@.*$/', $symb)) { // TODO GF LF TF sensitive
+        if (preg_match('/^(int|bool|string)@.*$/', $symb)) {
             $symb = explode('@', $symb);
+            //var_dump($symb);
             if ($symb[0] == 'int') {
-                if (preg_match('/^([+-][1-9][0-9]*|[+-]0)$/', $symb[1])) {
-                    array_push($this->iArgs, [$symb[0] => $symb[1]]);
-                    return true;
-                }
+                array_push($this->iArgs, [$symb[0] => $symb[1]]);
+                return true;
             }
             elseif ($symb[0] == 'bool') {
-                if (preg_match('/^(true|false)$/', $symb[1])) { // TODO sensitive
+                $symb[1] = strtolower($symb[1]);
+                if (preg_match('/^(true|false)$/', $symb[1])) { // TODO sensitive???
                     array_push($this->iArgs, [$symb[0] => $symb[1]]);
                     return true;
                 }
             }
             else { // 'string'
-                // TODO
-                return true;
+                if (preg_match('/^.*$/', $symb[1])) { // TODO ???
+                    array_push($this->iArgs, [$symb[0] => $symb[1]]);
+                    return true;
+                }
             }
         }
         elseif (preg_match('/^(GF|LF|TF)@.*$/', $symb)) {
@@ -474,7 +478,7 @@ class Instruction {
     }
 
     /*
-     * Kontrola syntaxe navesti
+     * Kontrola syntaxe navesti, vlozeni syntakticky spravneho argumentu do $iArgs
      * @return  true/false
      */
     private function checkLabel($label) {
@@ -487,7 +491,7 @@ class Instruction {
     }
 
     /*
-     * Kontrola syntaxe typu
+     * Kontrola syntaxe typu, vlozeni syntakticky spravneho argumentu do $iArgs
      * @return  true/false
      */
     private function checkType($type) {
@@ -516,19 +520,15 @@ class Instruction {
      * Odstrani komentare radku, sbira statistiky o poctu komentaru atd..
      * @return   Pole retezcu bez komentaru
      */
-    private function removeComments($items) {
-        $newItems = [];
-        foreach ($items as $item) {
-            if ( ereg('^#.*', $item) ) {
-                $this->stats->addComment();
-                break; // vse za znakem # zahazujeme
-            }
-            else
-                array_push($newItems, $item);
+    private function removeComments($line) {
+        if (strpos($line, '#') !== false) {
+            $line = explode('#', $line);
+            $line = $line[0];
+            $this->stats->addComment();
         }
-        if (empty($newItems)) // pokud radek obsahuje pouze komentare, nepocita se mezi instrukce
+        if ($line == "") // pokud radek obsahoval pouze komentar, nepocita se mezi instrukce
             $this->stats->subInstruction();
-        return $newItems;
+        return $line;
     }
 
     /*
@@ -593,10 +593,6 @@ class Writer {
         // kontrola
         if ($type == 'bool') // bool, false vzdy malymi pismeny
             $value = strtolower($value);
-        elseif ($type == 'var') { // oznaceni ramce GF, LF.. vzdy velkymi pismeny
-            $value[0] = strtoupper($value[0]);
-            $value[1] = strtoupper($value[1]);
-        }
 
         $this->xml->text($value); // hodnota elementu
         $this->xml->endElement(); // ukoncujici element
