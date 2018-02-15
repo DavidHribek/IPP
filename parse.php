@@ -24,7 +24,7 @@ while ($argCount = $inst->loadNext()) {
 // vypis
 $writer->writeOut(); // Vypis XML na STDOUT
 fprintf(STDERR, "\n------STATS-------\n");
-$stats->writeOut();
+$stats->writeOut(); // Vypis statistik do souboru (pokud byly zadany argumenty --stats|--loc|--comments)
 fprintf(STDERR, "LOC   : ".$stats->countInstructions."\n");
 fprintf(STDERR, "COMM  : ".$stats->countComments."\n");
 /*--------------------------------------------------TRIDY/FUNKCE------------------------------------------------------*/
