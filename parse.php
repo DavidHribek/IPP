@@ -468,7 +468,7 @@ class Instruction {
                 }
             }
             else { // 'string'
-                if (preg_match('/^$/', $symb[1])) { // TODO ???
+                if (preg_match('/^.*$/', $symb[1])) { // TODO ???
                     array_push($this->iArgs, [$symb[0] => $symb[1]]);
                     return true;
                 }
