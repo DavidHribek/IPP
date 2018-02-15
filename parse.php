@@ -186,15 +186,18 @@ class Instruction {
 
         if ( $line = fgets(STDIN) ) {
             if ($line != "\n")
-                $this->stats->addInstruction();
+                $this->stats->addInstruction(); // potencialni instrukce
         }
         else
             return false; // pokud neni co cist ze STDIN
 
         $line = preg_replace('/\s+/', ' ', $line); // odstraneni prebytecnych bilych znaku
-        $line = trim($line); // odstraneni bilych znaku z okraju
+//        echo $line."\n";
         $line = $this->removeComments($line);
+        $line = trim($line); // odstraneni bilych znaku z okraju
+//        echo $line."\n";
         $items = explode(' ', $line);
+//        var_dump( $items);
 
         if ($this->called == 1) { // kontrola prvniho radku
             if (empty($items)) {
@@ -204,7 +207,7 @@ class Instruction {
             else {
                 $items[0] = strtoupper($items[0]);
                 if (((count($items) == 1) && ($items[0] == '.IPPCODE18'))) {
-                    return true; // cti dalsi insturkci
+                    return true; // cti dalsi instrukci
                 } else {
                     fprintf(STDERR, "Missing first line .IPPcode18!\n");
                     exit(21);
@@ -465,7 +468,7 @@ class Instruction {
                 }
             }
             else { // 'string'
-                if (preg_match('/^.*$/', $symb[1])) { // TODO ???
+                if (preg_match('/^$/', $symb[1])) { // TODO ???
                     array_push($this->iArgs, [$symb[0] => $symb[1]]);
                     return true;
                 }
@@ -495,7 +498,7 @@ class Instruction {
      * @return  true/false
      */
     private function checkType($type) {
-        if (preg_match('/^(int|bool|string)$/', $type)) { // TODO GF LF TF sensitive
+        if (preg_match('/^(int|bool|string)$/', $type)) {
             array_push($this->iArgs, ['type' => $type]);
             return true;
         }
@@ -508,7 +511,7 @@ class Instruction {
      * @return  true/false
      */
     private function checkVar($var) {
-        if (preg_match('/^(GF|LF|TF)@(_|-|\$|&|\*|\w)[\d\w]*$/', $var)) { // TODO GF LF TF sensitive
+        if (preg_match('/^(GF|LF|TF)@(_|-|\$|&|\*|\w)[\d\w]*$/', $var)) {
             array_push($this->iArgs, ['var' => $var]);
             return true;
         }
