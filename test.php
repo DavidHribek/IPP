@@ -92,26 +92,48 @@ class DirectoryScanner {
             exit(10);
         }
 
-        $this->generateFiles();
+        $this->generateFiles(); // vygeneruje chybejici soubory
     }
 
     private function generateFiles() {
-        $rcPath = $this->getDirectoryPath($this->rcFiles[0]);
-        $inPath = $this->getDirectoryPath($this->inFiles[0]);
-        $outPath = $this->getDirectoryPath($this->outFiles[0]);
-        echo $rcPath;
+        $rcPath = (count($this->rcFiles) > 0)? $this->getDirectoryPath($this->rcFiles[0]): $this->baseDir;
+        $inPath = (count($this->inFiles) > 0)? $this->getDirectoryPath($this->inFiles[0]): $this->baseDir;
+        $outPath = (count($this->outFiles) > 0)? $this->getDirectoryPath($this->outFiles[0]): $this->baseDir;
 
-        foreach ($this->inFiles as $file) {
-//            if (file_exists($this->getDirectoryPath($file)))
-            echo $this->getFileName($file)."\n";
+        // generate .rc files
+        foreach ($this->srcFiles as $file) {
+            $expectedFile = $rcPath.$this->getFileName($file).".rc";
+            if (!file_exists($expectedFile)) { // vytvori soubor s rc 0, pokud soubor $file neexistuje v slozce rc souboru
+//                file_put_contents($expectedFile, "0"); // TODO uncomment
+                fprintf(STDERR, "Created new file: ".$expectedFile."\n");
+            }
         }
+
+        // generate .in files
+        foreach ($this->srcFiles as $file) {
+            $expectedFile = $inPath.$this->getFileName($file).".in";
+            if (!file_exists($expectedFile)) { // vytvori soubor s rc 0, pokud soubor $file neexistuje v slozce rc souboru
+//                file_put_contents($inPath.$this->getFileName($file).".in", ""); // TODO uncomment
+                fprintf(STDERR, "Created new file: ".$expectedFile."\n");
+            }
+        }
+
+        // generate .out files
+        foreach ($this->srcFiles as $file) {
+            $expectedFile = $outPath.$this->getFileName($file).".out";
+            if (!file_exists($expectedFile)) { // vytvori soubor s rc 0, pokud soubor $file neexistuje v slozce rc souboru
+//                file_put_contents($outPath.$this->getFileName($file).".out", ""); // TODO uncomment
+                fprintf(STDERR, "Created new file: ".$expectedFile."\n");
+            }
+        }
+
     }
 
     /*
      * Vraci nazev souboru
      */
     private function getFileName($pathToFile) {
-        return preg_replace('/^(.*\/)(.+\.(in|out|rc|src))$/','\2', $pathToFile);
+        return preg_replace('/^(.*\/)?(.+)\.(in|out|rc|src)$/','\2', $pathToFile);
     }
 
     /*
@@ -139,7 +161,7 @@ class Arguments
 
     public function __construct() {
         $this->recursive = false;
-        $this->directory = '.';
+        $this->directory = './';
         $this->parseScript = 'parse.php';
         $this->intScript = 'interpret.py';
     }
