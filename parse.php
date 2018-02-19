@@ -28,6 +28,7 @@ $stats->writeOut(); // Vypis statistik do souboru (pokud byly zadany argumenty -
 fprintf(STDERR, "LOC   : ".$stats->countInstructions."\n");
 fprintf(STDERR, "COMM  : ".$stats->countComments."\n");
 /*--------------------------------------------------TRIDY/FUNKCE------------------------------------------------------*/
+
 /*
  * Validace argumentu scriptu
  */
@@ -175,7 +176,7 @@ class Instruction {
     }
 
     /*
-     * Nacte instrukci z STDIN
+     * Nacte instrukci z STDIN, ulozi data do $iName, $iArgs
      * @return  true, false pokud neni co cist
      */
     public function loadNext() {
