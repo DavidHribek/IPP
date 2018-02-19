@@ -95,12 +95,15 @@ class DirectoryScanner {
         $this->generateFiles(); // vygeneruje chybejici soubory
     }
 
+    /*
+     * Vygeneruje chybejici soubory
+     */
     private function generateFiles() {
         $rcPath = (count($this->rcFiles) > 0)? $this->getDirectoryPath($this->rcFiles[0]): $this->baseDir;
         $inPath = (count($this->inFiles) > 0)? $this->getDirectoryPath($this->inFiles[0]): $this->baseDir;
         $outPath = (count($this->outFiles) > 0)? $this->getDirectoryPath($this->outFiles[0]): $this->baseDir;
 
-        // generate .rc files
+        // generovani .rc souboru
         foreach ($this->srcFiles as $file) {
             $expectedFile = $rcPath.$this->getFileName($file).".rc";
             if (!file_exists($expectedFile)) { // vytvori soubor s rc 0, pokud soubor $file neexistuje v slozce rc souboru
@@ -109,7 +112,7 @@ class DirectoryScanner {
             }
         }
 
-        // generate .in files
+        // generovani .in souboru
         foreach ($this->srcFiles as $file) {
             $expectedFile = $inPath.$this->getFileName($file).".in";
             if (!file_exists($expectedFile)) { // vytvori soubor s rc 0, pokud soubor $file neexistuje v slozce rc souboru
@@ -118,7 +121,7 @@ class DirectoryScanner {
             }
         }
 
-        // generate .out files
+        // generovani .out souboru
         foreach ($this->srcFiles as $file) {
             $expectedFile = $outPath.$this->getFileName($file).".out";
             if (!file_exists($expectedFile)) { // vytvori soubor s rc 0, pokud soubor $file neexistuje v slozce rc souboru
@@ -137,23 +140,17 @@ class DirectoryScanner {
     }
 
     /*
-     * Vraci cestu k slozce, ve ktere se nachazi dany soubor
+     * Vraci cestu ke slozce, ve ktere se nachazi dany soubor
      */
     private function getDirectoryPath($pathToFile) {
         return preg_replace('/^(.*\/).+\.(in|out|rc|src)$/','\1', $pathToFile);
     }
-
-//    public function
 }
-
-
-
 
 /*
  * Trida pro kontrolu a zpracovani argumentu scriptu
  */
-class Arguments
-{
+class Arguments {
     public $recursive;
     public $directory;
     public $parseScript;
@@ -191,6 +188,8 @@ class Arguments
                 $validArgs++;
             }
             if (array_key_exists('directory', $opts)) {
+                if (substr($opts['directory'], -1) != '/') // pokud posledni znak neni /, pridat / nakonec
+                    $opts['directory'] = $opts['directory']."/";
                 $this->directory = $opts['directory'];
                 $validArgs++;
             }
@@ -212,15 +211,15 @@ class Arguments
         }
 
         if (!file_exists($this->parseScript)) { // kontrola existence souboru parse.php
-            fprintf(STDERR, "File '".$this->parseScript."' does not exist!\n");
+            fprintf(STDERR, "File does not exist: ".$this->parseScript."\n");
             exit(10);
         }
         if (!file_exists($this->intScript)) { // kontrola existence souboru interpret.py
-            fprintf(STDERR, "File '".$this->intScript."' does not exist!\n");
+            fprintf(STDERR, "File does not exist: ".$this->intScript."\n");
             exit(10);
         }
         if (!file_exists($this->directory)) { // kontrola existence slozky
-            fprintf(STDERR, "Directory '".$this->directory."' does not exist!\n");
+            fprintf(STDERR, "Directory does not exist: ".$this->directory."\n");
             exit(10);
         }
     }
