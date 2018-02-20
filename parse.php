@@ -23,10 +23,10 @@ while ($argCount = $inst->loadNext()) {
 }
 // vypis
 $writer->writeOut(); // Vypis XML na STDOUT
-fprintf(STDERR, "\n------STATS-------\n");
+//fprintf(STDERR, "\n------STATS-------\n");
 $stats->writeOut(); // Vypis statistik do souboru (pokud byly zadany argumenty --stats|--loc|--comments)
-fprintf(STDERR, "LOC   : ".$stats->countInstructions."\n");
-fprintf(STDERR, "COMM  : ".$stats->countComments."\n");
+//fprintf(STDERR, "LOC   : ".$stats->countInstructions."\n");
+//fprintf(STDERR, "COMM  : ".$stats->countComments."\n");
 /*--------------------------------------------------TRIDY/FUNKCE------------------------------------------------------*/
 
 /*
@@ -216,7 +216,7 @@ class Instruction {
         }
 
         if (empty($items) || $items[0] == "") // pokud na radku neni instrukce, nacteme dalsi radek
-            $this->loadNext();
+            $this->loadNext(); // TODO return
         else {
             if ($this->checkSyntax($items)) {
                 return true;

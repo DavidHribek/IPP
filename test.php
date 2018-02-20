@@ -12,12 +12,66 @@ $Arguments->checkArguments();
 $DirectoryScanner = new DirectoryScanner($Arguments->directory);
 $DirectoryScanner->scan($Arguments->directory, $Arguments->recursive);
 
+$TmpFile = new TemporaryFile();
 
 foreach ($DirectoryScanner->srcFiles as $srcFile)
 {
-    exec('php5.6 '.$Arguments->parseScript.' < '.$srcFile);
+    // pridruzene soubory .rc .in .out k aktualnimu .src
+    $rcFile = array_shift($DirectoryScanner->rcFiles);
+    $inFile = array_shift($DirectoryScanner->inFiles);
+    $outFile = array_shift($DirectoryScanner->outFiles);
+
+    echo "\n\n".$srcFile."\n";
+    exec('php5.6 '.$Arguments->parseScript.' < '.$srcFile, $parseOutput, $returnCode); // parse.php < soubor.src
+    if ($returnCode == 0) // nedoslo k chybe, vygenerovano XML
+    {
+        $TmpFile->create();
+        $TmpFile->writeExecOutput($parseOutput); // naplni tmp soubor vystupem z parseru
+//        echo "|".file_get_contents($inFile)."|";
+        exec('python3.6 '.$Arguments->intScript.' < '.file_get_contents($inFile), $interpretOutput, $returnCode); // interpret.py < XML // TODO vstup soubor
+//        exec('python3.6 '.$Arguments->intScript.' --source='.$TmpFile->getPath().' < '.file_get_contents($inFile), $interpretOutput, $returnCode); // interpret.py < XML // TODO vstup soubor
+        $TmpFile->reset();
+        $TmpFile->writeExecOutput($interpretOutput); // naplni tmp soubor vystupem z interpretu
+//        echo $TmpFile->getAsString();return;
+        if ($returnCode == 0)
+        {
+//            echo $TmpFile->getAsString();
+//            echo file_get_contents($outFile); break;
+            exec('diff '.$TmpFile->getPath().' '.$outFile, $output /*dale nepouzito*/, $returnCode);
+            if ($returnCode == 0)
+            {
+                echo "PASS"; // TODO
+            }
+            else
+            {
+                echo "Interp: BAD OUTPUT"; // TODO
+            }
+        }
+        else // chyba interpretace
+        {
+            if ($returnCode == file_get_contents($rcFile))
+            {
+                echo "PASS"; // TODO
+            }
+            else
+            {
+                echo "Interpret: EXIT CODE ".$returnCode." EXPECTED ".file_get_contents($rcFile); // TODO
+            }
+        }
+    }
+    else // chyba parsovani
+    {
+        if ($returnCode == file_get_contents($rcFile)) // chybove kody se shoduji
+        {
+            echo "PARSER: Ok exit code"; // TODO
+        }
+        else // chybove kody se neshoduji
+        {
+            echo "Parser: EXIT CODE ".$returnCode." EXPECTED ".file_get_contents($rcFile); // TODO
+        }
+    }
+
 }
-//fseek($temp, 0);
 
 
 
@@ -51,6 +105,15 @@ class TemporaryFile
     }
 
     /*
+     * Premaze soubor
+     */
+    public function reset()
+    {
+        $this->close();
+        $this->create();
+    }
+
+    /*
      * Vrati obsah souboru jako string
      */
     public function getAsString()
@@ -61,11 +124,21 @@ class TemporaryFile
     }
 
     /*
-     * Zapis do souboru
+     * Vrati cestu k souboru
      */
-    public function write($content)
+    public function getPath()
     {
-        fwrite($this->file, $content);
+        $metaDatas = stream_get_meta_data($this->file);
+        return $metaDatas['uri'];
+    }
+
+    /*
+     * Zapis polozek pole do souboru
+     */
+    public function writeExecOutput($array)
+    {
+        foreach ($array as $a)
+            fwrite($this->file, $a."\n");
     }
 }
 
@@ -164,7 +237,7 @@ class DirectoryScanner
             $expectedFile = $rcPath.$this->getFileName($file).".rc";
             if (!file_exists($expectedFile))
             { // vytvori soubor s rc 0, pokud soubor $file neexistuje v slozce rc souboru
-//                file_put_contents($expectedFile, "0"); // TODO uncomment
+                file_put_contents($expectedFile, "0"); // TODO uncomment
                 array_push($this->rcFiles, $expectedFile);
                 fprintf(STDERR, "Created new file: ".$expectedFile."\n");
             }
@@ -176,7 +249,7 @@ class DirectoryScanner
             $expectedFile = $inPath.$this->getFileName($file).".in";
             if (!file_exists($expectedFile))
             { // vytvori soubor s rc 0, pokud soubor $file neexistuje v slozce rc souboru
-//                file_put_contents($inPath.$this->getFileName($file).".in", ""); // TODO uncomment
+                file_put_contents($inPath.$this->getFileName($file).".in", ""); // TODO uncomment
                 array_push($this->inFiles, $expectedFile);
                 fprintf(STDERR, "Created new file: ".$expectedFile."\n");
             }
@@ -188,7 +261,7 @@ class DirectoryScanner
             $expectedFile = $outPath.$this->getFileName($file).".out";
             if (!file_exists($expectedFile))
             { // vytvori soubor s rc 0, pokud soubor $file neexistuje v slozce rc souboru
-//                file_put_contents($outPath.$this->getFileName($file).".out", ""); // TODO uncomment
+                file_put_contents($outPath.$this->getFileName($file).".out", ""); // TODO uncomment
                 array_push($this->outFiles, $expectedFile);
                 fprintf(STDERR, "Created new file: ".$expectedFile."\n");
             }
@@ -227,7 +300,7 @@ class Arguments
     {
         $this->recursive = false;
 //        $this->directory = './';
-        $this->directory = getcwd(); // pwd
+        $this->directory = getcwd().'/'; // pwd
         $this->parseScript = 'parse.php';
         $this->intScript = 'interpret.py';
     }
