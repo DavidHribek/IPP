@@ -13,12 +13,11 @@ $DirectoryScanner = new DirectoryScanner($Arguments->directory);
 $DirectoryScanner->scan($Arguments->directory, $Arguments->recursive);
 
 
-
-
-
-
-
-//var_dump($Regex);
+foreach ($DirectoryScanner->srcFiles as $srcFile)
+{
+    exec('php5.6 '.$Arguments->parseScript.' < '.$srcFile);
+}
+//fseek($temp, 0);
 
 
 
@@ -31,12 +30,55 @@ $DirectoryScanner->scan($Arguments->directory, $Arguments->recursive);
 
 /*--------------------------------------------------TRIDY/FUNKCE------------------------------------------------------*/
 
+class TemporaryFile
+{
+    private $file;
+
+    /*
+     * Otevreni docasneho souboru
+     */
+    public function create()
+    {
+        $this->file = tmpfile();
+    }
+
+    /*
+     * Uzavreni docasneho souboru
+     */
+    public function close()
+    {
+        fclose($this->file);
+    }
+
+    /*
+     * Vrati obsah souboru jako string
+     */
+    public function getAsString()
+    {
+        $metaDatas = stream_get_meta_data($this->file);
+        $tmpFilename = $metaDatas['uri'];
+        return file_get_contents($tmpFilename);
+    }
+
+    /*
+     * Zapis do souboru
+     */
+    public function write($content)
+    {
+        fwrite($this->file, $content);
+    }
+}
+
+
+/*
+ * Trida pro skenovani slozky, ziskani nazvu souboru, generovani novych souboru (pokud chybi)
+ */
 class DirectoryScanner
 {
-    private $srcFiles;
-    private $rcFiles;
-    private $inFiles;
-    private $outFiles;
+    public $srcFiles;
+    public $rcFiles;
+    public $inFiles;
+    public $outFiles;
 
     private $baseDir;
 
@@ -56,7 +98,7 @@ class DirectoryScanner
      */
     public function scan($dir, $recursive)
     {
-        if ($recursive)
+        if ($recursive) // pokud byl zadan argument --recursive
         {
             $Directory = new RecursiveDirectoryIterator($dir);
             $Iterator = new RecursiveIteratorIterator($Directory);
@@ -71,33 +113,40 @@ class DirectoryScanner
         $Regex = new RegexIterator($Iterator, '/^.+\.src$/i', RecursiveRegexIterator::GET_MATCH);
         foreach ($Regex as $r)
             array_push($this->srcFiles, $r[0]);
-        sort($this->srcFiles);
 
         // soubory .rc
         $Regex = new RegexIterator($Iterator, '/^.+\.rc$/i', RecursiveRegexIterator::GET_MATCH);
         foreach ($Regex as $r)
             array_push($this->rcFiles, $r[0]);
-        sort($this->rcFiles);
 
         // soubory .in
         $Regex = new RegexIterator($Iterator, '/^.+\.in$/i', RecursiveRegexIterator::GET_MATCH);
         foreach ($Regex as $r)
             array_push($this->inFiles, $r[0]);
-        sort($this->inFiles);
 
         // soubory .out
         $Regex = new RegexIterator($Iterator, '/^.+\.out$/i', RecursiveRegexIterator::GET_MATCH);
         foreach ($Regex as $r)
             array_push($this->outFiles, $r[0]);
-        sort($this->outFiles);
 
         if (count($this->srcFiles) == 0)
         { // test musi mit k dispozici zdrojove soubory
             fprintf(STDERR, "No source files!\n");
-            exit(10);
+            exit(0);
         }
 
         $this->generateFiles(); // vygeneruje chybejici soubory
+
+        // seradit soubory
+        sort($this->srcFiles);
+        sort($this->rcFiles);
+        sort($this->inFiles);
+        sort($this->outFiles);
+
+//        var_dump($this->srcFiles);
+//        var_dump($this->rcFiles);
+//        var_dump($this->inFiles);
+//        var_dump($this->outFiles);
     }
 
     /*
@@ -116,6 +165,7 @@ class DirectoryScanner
             if (!file_exists($expectedFile))
             { // vytvori soubor s rc 0, pokud soubor $file neexistuje v slozce rc souboru
 //                file_put_contents($expectedFile, "0"); // TODO uncomment
+                array_push($this->rcFiles, $expectedFile);
                 fprintf(STDERR, "Created new file: ".$expectedFile."\n");
             }
         }
@@ -127,6 +177,7 @@ class DirectoryScanner
             if (!file_exists($expectedFile))
             { // vytvori soubor s rc 0, pokud soubor $file neexistuje v slozce rc souboru
 //                file_put_contents($inPath.$this->getFileName($file).".in", ""); // TODO uncomment
+                array_push($this->inFiles, $expectedFile);
                 fprintf(STDERR, "Created new file: ".$expectedFile."\n");
             }
         }
@@ -138,6 +189,7 @@ class DirectoryScanner
             if (!file_exists($expectedFile))
             { // vytvori soubor s rc 0, pokud soubor $file neexistuje v slozce rc souboru
 //                file_put_contents($outPath.$this->getFileName($file).".out", ""); // TODO uncomment
+                array_push($this->outFiles, $expectedFile);
                 fprintf(STDERR, "Created new file: ".$expectedFile."\n");
             }
         }
@@ -174,7 +226,8 @@ class Arguments
     public function __construct()
     {
         $this->recursive = false;
-        $this->directory = './';
+//        $this->directory = './';
+        $this->directory = getcwd(); // pwd
         $this->parseScript = 'parse.php';
         $this->intScript = 'interpret.py';
     }
@@ -229,7 +282,7 @@ class Arguments
             if (!($validArgs == (count($argv) - 1)))
             { // pokud byly zadany dalsi nechtene arguemnty: chyba
                 fprintf(STDERR, $errorMsg);
-                exit(10);
+                exit(10); // TODO ERROR CODE???
             }
         }
         else
