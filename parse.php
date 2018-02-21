@@ -15,7 +15,7 @@ while ($argCount = $inst->loadNext()) {
         $writer->writeInstructionStart($inst->iName); // zacatek elementu instruction
         //echo $inst->iName."\n";
         foreach ($inst->iArgs as $arg) {
-            foreach ($arg as $type => $value)
+            foreach ($arg as $type => $value) // $arg obsahuje jen jednu polozku
                 $writer->writeArgumentStartEnd($type, $value); // vypis jednotlivych argumentu
         }
         $writer->writeElementEnd(); // konec elementu instruction

@@ -22,8 +22,8 @@ foreach ($DirectoryScanner->srcFiles as $srcFile)
     $inFile = array_shift($DirectoryScanner->inFiles);
     $outFile = array_shift($DirectoryScanner->outFiles);
 
-//    echo "\n\nFIL NAME: ".$srcFile."\n"; // DEBUG
-//    echo "FILE: |".$TmpFile->getAsString()."|\n"; // DEBUG
+    fprintf(STDERR,"\n\nFIL NAME: ".$srcFile."\n"); // DEBUG
+//    fprintf(STDERR, "FILE: |".$TmpFile->getAsString()."|\n"); // DEBUG
     unset($parseOutput);
     exec('php5.6 '.$Arguments->parseScript.' < '.$srcFile, $parseOutput, $parseReturnCode); // parse.php < soubor.src
     if ($parseReturnCode == 0) // nasleduje interpretace
@@ -33,46 +33,66 @@ foreach ($DirectoryScanner->srcFiles as $srcFile)
         exec('python3.6 '.$Arguments->intScript.' --source='.$TmpFile->getPath().' < '.$inFile, $interpretOutput, $interpretReturnCode); // interpret.py < XML
         $TmpFile->reset();
         $TmpFile->writeExecOutput($interpretOutput); // naplni tmp soubor vystupem z interpretu
-//        echo "INT OUTP: |".$TmpFile->getAsString()."|\n"; // DEBUG
-//        echo "REF OUTP: |".file_get_contents($outFile)."|\n"; // DEBUG
-        if ($interpretReturnCode == 0)
+//        fprintf(STDERR, "INT OUTP: |".$TmpFile->getAsString()."|\n"); // DEBUG
+//        fprintf(STDERR, "REF OUTP: |".file_get_contents($outFile)."|\n"); // DEBUG
+        if ($interpretReturnCode == file_get_contents($rcFile)) // ocekavany navratovy kod
         {
-            exec('diff '.$TmpFile->getPath().' '.$outFile, $output /*dale nepouzito*/, $diffReturnCode); // porovnani vystupu interpretu a .out soboru
-            if ($diffReturnCode == 0) // vystup interpretu == .out soubor
+            if ($interpretReturnCode == 0) // porovnani vystupu interpretu s referencnim vystupem
             {
-                $HtmlGenerator->addTestResult($srcFile, $inFile, $outFile, $rcFile, true, 0, 0, 'correct');
-//                echo "Inter: PASS output"; // TODO HTML
+                exec('diff '.$TmpFile->getPath().' '.$outFile, $output /*dale nepouzito*/, $diffReturnCode); // porovnani vystupu interpretu a .out soboru
+                if ($diffReturnCode == 0) // vystup interpretu == .out soubor
+                {
+                    $HtmlGenerator->addTestResult($srcFile, $inFile, $outFile, $rcFile, true, 0, 0);
+                }
+                else
+                {
+                    $HtmlGenerator->addTestResult($srcFile, $inFile, $outFile, $rcFile, false, 0, 0);
+                }
             }
             else
             {
-//                echo "Inter: ERROR output"; // TODO HTML
-                $HtmlGenerator->addTestResult($srcFile, $inFile, $outFile, $rcFile, false, 0, 0, 'incorrect');
+                $HtmlGenerator->addTestResult($srcFile, $inFile, $outFile, $rcFile, true, 0, $interpretReturnCode);
             }
         }
-        else // chyba interpretace
+        else // neocekavany navratovy kod
         {
-            if ($interpretReturnCode == file_get_contents($rcFile)) // chybove kody se shoduji
-            {
-                $HtmlGenerator->addTestResult($srcFile, $inFile, $outFile, $rcFile, true, 0, $interpretReturnCode, 'notset');
-//                echo "Inter: PASS exit code"; // TODO HTML
-            }
-            else // chybove kody se neshoduji
-            {
-                $HtmlGenerator->addTestResult($srcFile, $inFile, $outFile, $rcFile, false, 0, $interpretReturnCode, 'notset');
-//                echo "Inter: ERROR exit code ".$interpretReturnCode." expected ".file_get_contents($rcFile); // TODO HTML
-            }
+            $HtmlGenerator->addTestResult($srcFile, $inFile, $outFile, $rcFile, false, 0, $interpretReturnCode);
         }
+
+//        if ($interpretReturnCode == 0)
+//        {
+//            exec('diff '.$TmpFile->getPath().' '.$outFile, $output /*dale nepouzito*/, $diffReturnCode); // porovnani vystupu interpretu a .out soboru
+//            if ($diffReturnCode == 0) // vystup interpretu == .out soubor
+//            {
+//                $HtmlGenerator->addTestResult($srcFile, $inFile, $outFile, $rcFile, true, 0, 0, 'correct');
+//            }
+//            else
+//            {
+//                $HtmlGenerator->addTestResult($srcFile, $inFile, $outFile, $rcFile, false, 0, 0, 'incorrect');
+//            }
+//        }
+//        else // chyba interpretace
+//        {
+//            if ($interpretReturnCode == file_get_contents($rcFile)) // chybove kody se shoduji
+//            {
+//                $HtmlGenerator->addTestResult($srcFile, $inFile, $outFile, $rcFile, true, 0, $interpretReturnCode, 'notset');
+//            }
+//            else // chybove kody se neshoduji
+//            {
+//                $HtmlGenerator->addTestResult($srcFile, $inFile, $outFile, $rcFile, false, 0, $interpretReturnCode, 'notset');
+//            }
+//        }
     }
     else // chyba parsovani
     {
         if ($parseReturnCode == file_get_contents($rcFile)) // chybove kody se shoduji
         {
-            $HtmlGenerator->addTestResult($srcFile, $inFile, $outFile, $rcFile, false, $parseReturnCode, -1, 'notset');
+            $HtmlGenerator->addTestResult($srcFile, $inFile, $outFile, $rcFile, false, $parseReturnCode, '');
 //            echo "Parse: PASS exit code"; // TODO HTML
         }
         else // chybove kody se neshoduji
         {
-            $HtmlGenerator->addTestResult($srcFile, $inFile, $outFile, $rcFile, false, $parseReturnCode, -1, 'notset');
+            $HtmlGenerator->addTestResult($srcFile, $inFile, $outFile, $rcFile, false, $parseReturnCode);
 //            echo "Parse: ERROR exit code ".$parseReturnCode." expected ".file_get_contents($rcFile); // TODO
         }
     }
@@ -94,7 +114,7 @@ class HtmlGenerator {
     /*
      * Vlozi vysledek testu do promenne $testResult
      */
-    public function addTestResult($srcFile, $infile, $outFile, $rcFile, $pass, $parseReturnCode, $interpretReturnCode, $validOutput)
+    public function addTestResult($srcFile, $infile, $outFile, $rcFile, $pass, $parseReturnCode, $interpretReturnCode)
     {
         $this->testResults[] = [
             'srcFile' => $srcFile,
@@ -103,7 +123,6 @@ class HtmlGenerator {
             'rcFile' => $rcFile,
             'parseReturnCode' => $parseReturnCode,
             'interpretReturnCode' => $interpretReturnCode,
-            'interpretOutput' => $validOutput,
             'pass' => $pass
         ];
     }
@@ -113,6 +132,11 @@ class HtmlGenerator {
      */
     public function generate()
     {
+        $testCount = 0;
+        $testPassedCount = 0;
+        $testCodesPassedCount = 0;
+
+
         $html = '<!doctype html>
         <html lang=\"cz\">
         <head>
@@ -122,16 +146,28 @@ class HtmlGenerator {
             <meta name=\"David Hříbek\">
             
             <style>
-            table {
-            
-                font-family: Helvetica, Arial, Helvetica, sans-serif;
-                border-collapse: collapse;
+            h1 {
+                text-align: center;
+                color: #676d6a;
+            }
+            #main {
                 width: 70%;
                 margin: auto;
             }
+            tr#summary{
+                background: #676d6a;
+                color: white;            
+            }
+            table {
+                -webkit-box-shadow: 1px 1px 5px 0px rgba(0,0,0,0.47);
+                -moz-box-shadow: 1px 1px 5px 0px rgba(0,0,0,0.47);
+                box-shadow: 1px 1px 5px 0px rgba(0,0,0,0.47);
+                font-family: Helvetica, Arial, Helvetica, sans-serif;
+                border-collapse: collapse;
+            }
             
             table td, table th {
-                border: 1px solid #ddd;
+//                border: 1px solid #ddd;
                 padding: 8px;
             }
             
@@ -143,7 +179,7 @@ class HtmlGenerator {
                 padding-top: 12px;
                 padding-bottom: 12px;
                 text-align: left;
-                background-color: #2dbb73;
+                background-color: #676d6a;
                 color: white;
                 text-align: center;
             }
@@ -156,8 +192,8 @@ class HtmlGenerator {
               border-radius: 100%;
               margin: auto;
             }
-            .no-output {
-                background: #c3baba;
+            .background-gray{
+                background: #dcdcd9;
             }
             .failed {
                 background: #bb3737;
@@ -168,75 +204,110 @@ class HtmlGenerator {
             .center {
                 text-align: center;
             }
+            
+            ul li {
+                display: inline;
+                float: left;
+                padding: 0 15px;
+            }
+            ul li div {
+                float: left;
+                margin-right: 10px !important;
+            }
+            
         </style>
         </head>
 
         <body>
-            <div>
+            <div id="main">
+                <h1>IPPcode18</h1>
                 <table>
-                    <tr>
-                        <th rowspan="2">IPPcode18 Source file</th>
-                        <th rowspan="2">Other files</th>
-                        <th colspan="2">Parse return code</th>
-                        <th colspan="2">Interpret return code</th>
-                        <th rowspan="2">Interpret Output</th>
-                        <th rowspan="2">Result</th>
-                    </tr>
-                    <tr>
-                        <th>Expected</th>
-                        <th>Returned</th>
-                        <th>Expected</th>
-                        <th>Returned</th>                        
-                    </tr>';
+                    <thead>
+                        <tr>
+                            <th rowspan="2">No.</th>
+                            <th rowspan="2">Source files (IPPcode18)</th>
+                            <th rowspan="2">Other files</th>
+                            <th colspan="4">Return code</th>
+                            <th rowspan="2">Result</th>
+                        </tr>
+                        <tr>
+                            <th>Parse</th>
+                            <th>Interpret</th>
+                            <th>Expected</th>
+                            <th>Passed</th>  
+                        </tr>
+                    </thead><tbody>';
 
         foreach ($this->testResults as $testResult)
         {
             $html = $html."<tr>";
+            // ROW number
+            $testCount++;
+            $html = $html."<td class='center'>".$testCount."</td>\n";
             // ROW src file
             $html = $html."<td>".$testResult['srcFile']."</td>\n";
             // ROW other files
             $html = $html."<td>".$testResult['inFile']."</br>".$testResult['outFile']."</br>".$testResult['rcFile']."</td>\n";
             // ROW parse return code
-            if ($testResult['interpretOutput'] == 'correct')
-            {
-//                $interpretExpectedReturnCode // TODO
-            }
+//            if ($testResult['interpretOutput'] == 'correct')
+//            {
+////                $interpretExpectedReturnCode // TODO
+//            }
 
-            // zjisteni ocekavanych navratovych kodu
-            if (($rc = file_get_contents($testResult['rcFile'])) == "0")
-                $parserExpectedReturnCode = $interpretExpectedReturnCode = 0;
-            else
-            {
-                if(in_array($rc, ['31', '32', '52', '53', '54', '55', '56', '57', '58'])) // pocita se s chybou az v interpreteru
-                {
-                    $parserExpectedReturnCode = 0;
-                    $interpretExpectedReturnCode = $rc;
-                }
-                elseif (in_array($rc, ['21'])) // pocita se s chybou v parseru
-                {
-                    $parserExpectedReturnCode = $rc;
-                    $interpretExpectedReturnCode = "X";
-                }
-            }
-            $html = $html."<td class='center'>".$parserExpectedReturnCode."</td>\n";
+//            // zjisteni ocekavanych navratovych kodu
+//            if (($rc = file_get_contents($testResult['rcFile'])) == "0")
+//                $parserExpectedReturnCode = $interpretExpectedReturnCode = 0;
+//            else
+//            {
+//                if(in_array($rc, ['31', '32', '52', '53', '54', '55', '56', '57', '58'])) // pocita se s chybou az v interpreteru
+//                {
+//                    $parserExpectedReturnCode = 0;
+//                    $interpretExpectedReturnCode = $rc;
+//                }
+//                elseif (in_array($rc, ['21'])) // pocita se s chybou v parseru
+//                {
+//                    $parserExpectedReturnCode = $rc;
+//                    $interpretExpectedReturnCode = "X";
+//                }
+//            }
+//            $html = $html."<td class='center'>".$parserExpectedReturnCode."</td>\n";
+//            $html = $html."<td class='center'>".$testResult['parseReturnCode']."</td>\n";
+//            $html = $html."<td class='center'>".$interpretExpectedReturnCode."</td>\n";
+//            $html = $html."<td class='center'>".$testResult['interpretReturnCode']."</td>\n";
+
             $html = $html."<td class='center'>".$testResult['parseReturnCode']."</td>\n";
-            $html = $html."<td class='center'>".$interpretExpectedReturnCode."</td>\n";
             $html = $html."<td class='center'>".$testResult['interpretReturnCode']."</td>\n";
-            // ROW interpret output
-            if ($testResult['pass'])
-                $html = $html."<td><div id='circle' class='passed'></div></td>\n";
+            $html = $html."<td class='center'>".file_get_contents($testResult['rcFile'])."</td>\n";
+            // ROW return code ok/fail
+            if ((file_get_contents($testResult['rcFile']) == $testResult['interpretReturnCode']) || (($testResult['interpretReturnCode'] == "") && (file_get_contents($testResult['rcFile']) == $testResult['parseReturnCode']))) {
+                $html = $html . "<td><div id='circle' class='passed'></div></td>\n";
+                $testCodesPassedCount++;
+            }
             else
                 $html = $html."<td><div id='circle' class='failed'></div></td>";
-            $html = $html."</tr>\n";
             // ROW ok/fail
-            if ($testResult['pass'])
-                $html = $html."<td><div id='circle' class='passed'></div></td>\n";
+            if ($testResult['pass']) {
+                $html = $html . "<td class='background-gray'><div id='circle' class='passed'></div></td>\n";
+                $testPassedCount++;
+            }
             else
-                $html = $html."<td><div id='circle' class='failed'></div></td>";
+                $html = $html."<td class='background-gray'><div id='circle' class='failed'></div></td>";
             $html = $html."</tr>\n";
         }
 
-        $html = $html.'</table>
+        $html = $html.'
+                <tr id="summary">
+                    <td colspan="3">Summary</td>
+                    <td colspan="3"></td>
+                    <td class="center">'.$testCodesPassedCount.'/'.$testCount.'</td>
+                    <td class="center">'.$testPassedCount.'/'.$testCount.'</td>
+                </tr>
+            </tbody>
+            </table>
+            <ul>
+                    <li>PASSED<div id=\'circle\' class=\'passed\'></div></li>
+                    <li>FAILED<div id=\'circle\' class=\'failed\'></div></li>
+                </ul>
             </div>
             <script></script>
         </body>
