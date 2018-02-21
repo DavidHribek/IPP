@@ -94,7 +94,7 @@ class HtmlGenerator {
     /*
      * Vlozi vysledek testu do promenne $testResult
      */
-    public function addTestResult($srcFile, $infile, $outFile, $rcFile, $pass, $parseReturnCode, $interpretReturnCode, $interpretOutput)
+    public function addTestResult($srcFile, $infile, $outFile, $rcFile, $pass, $parseReturnCode, $interpretReturnCode, $validOutput)
     {
         $this->testResults[] = [
             'srcFile' => $srcFile,
@@ -103,7 +103,7 @@ class HtmlGenerator {
             'rcFile' => $rcFile,
             'parseReturnCode' => $parseReturnCode,
             'interpretReturnCode' => $interpretReturnCode,
-            'interpretOutput' => $interpretOutput,
+            'interpretOutput' => $validOutput,
             'pass' => $pass
         ];
     }
@@ -192,16 +192,17 @@ class HtmlGenerator {
         foreach ($this->testResults as $testResult)
         {
             $html = $html."<tr>";
-            // src file
+            // ROW src file
             $html = $html."<td>".$testResult['srcFile']."</td>\n";
-            // other files
+            // ROW other files
             $html = $html."<td>".$testResult['inFile']."</br>".$testResult['outFile']."</br>".$testResult['rcFile']."</td>\n";
-            // parse return code
+            // ROW parse return code
             if ($testResult['interpretOutput'] == 'correct')
             {
 //                $interpretExpectedReturnCode // TODO
             }
 
+            // zjisteni ocekavanych navratovych kodu
             if (($rc = file_get_contents($testResult['rcFile'])) == "0")
                 $parserExpectedReturnCode = $interpretExpectedReturnCode = 0;
             else
@@ -221,13 +222,13 @@ class HtmlGenerator {
             $html = $html."<td class='center'>".$testResult['parseReturnCode']."</td>\n";
             $html = $html."<td class='center'>".$interpretExpectedReturnCode."</td>\n";
             $html = $html."<td class='center'>".$testResult['interpretReturnCode']."</td>\n";
-            // INTERPRET OUTPUT
+            // ROW interpret output
             if ($testResult['pass'])
                 $html = $html."<td><div id='circle' class='passed'></div></td>\n";
             else
                 $html = $html."<td><div id='circle' class='failed'></div></td>";
             $html = $html."</tr>\n";
-            // OK/FAIL
+            // ROW ok/fail
             if ($testResult['pass'])
                 $html = $html."<td><div id='circle' class='passed'></div></td>\n";
             else
