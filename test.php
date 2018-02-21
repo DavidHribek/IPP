@@ -11,8 +11,8 @@ $Arguments->checkArguments();
 
 $DirectoryScanner = new DirectoryScanner($Arguments->directory);
 $DirectoryScanner->scan($Arguments->directory, $Arguments->recursive);
-
 $TmpFile = new TemporaryFile();
+$HtmlGenerator = new HtmlGenerator();
 
 $TmpFile->create();
 foreach ($DirectoryScanner->srcFiles as $srcFile)
@@ -22,7 +22,7 @@ foreach ($DirectoryScanner->srcFiles as $srcFile)
     $inFile = array_shift($DirectoryScanner->inFiles);
     $outFile = array_shift($DirectoryScanner->outFiles);
 
-    echo "\n\nFIL NAME: ".$srcFile."\n"; // DEBUG
+//    echo "\n\nFIL NAME: ".$srcFile."\n"; // DEBUG
 //    echo "FILE: |".$TmpFile->getAsString()."|\n"; // DEBUG
     unset($parseOutput);
     exec('php5.6 '.$Arguments->parseScript.' < '.$srcFile, $parseOutput, $parseReturnCode); // parse.php < soubor.src
@@ -40,22 +40,26 @@ foreach ($DirectoryScanner->srcFiles as $srcFile)
             exec('diff '.$TmpFile->getPath().' '.$outFile, $output /*dale nepouzito*/, $diffReturnCode); // porovnani vystupu interpretu a .out soboru
             if ($diffReturnCode == 0) // vystup interpretu == .out soubor
             {
-                echo "Inter: PASS output"; // TODO HTML
+                $HtmlGenerator->addTestResult($srcFile, $inFile, $outFile, $rcFile, true, 0, 0, 'correct');
+//                echo "Inter: PASS output"; // TODO HTML
             }
             else
             {
-                echo "Inter: ERROR output"; // TODO HTML
+//                echo "Inter: ERROR output"; // TODO HTML
+                $HtmlGenerator->addTestResult($srcFile, $inFile, $outFile, $rcFile, false, 0, 0, 'incorrect');
             }
         }
         else // chyba interpretace
         {
             if ($interpretReturnCode == file_get_contents($rcFile)) // chybove kody se shoduji
             {
-                echo "Inter: PASS exit code"; // TODO HTML
+                $HtmlGenerator->addTestResult($srcFile, $inFile, $outFile, $rcFile, true, 0, $interpretReturnCode, 'notset');
+//                echo "Inter: PASS exit code"; // TODO HTML
             }
             else // chybove kody se neshoduji
             {
-                echo "Inter: ERROR exit code ".$interpretReturnCode." expected ".file_get_contents($rcFile); // TODO HTML
+                $HtmlGenerator->addTestResult($srcFile, $inFile, $outFile, $rcFile, false, 0, $interpretReturnCode, 'notset');
+//                echo "Inter: ERROR exit code ".$interpretReturnCode." expected ".file_get_contents($rcFile); // TODO HTML
             }
         }
     }
@@ -63,18 +67,189 @@ foreach ($DirectoryScanner->srcFiles as $srcFile)
     {
         if ($parseReturnCode == file_get_contents($rcFile)) // chybove kody se shoduji
         {
-            echo "Parse: PASS exit code"; // TODO HTML
+            $HtmlGenerator->addTestResult($srcFile, $inFile, $outFile, $rcFile, false, $parseReturnCode, -1, 'notset');
+//            echo "Parse: PASS exit code"; // TODO HTML
         }
         else // chybove kody se neshoduji
         {
-            echo "Parse: ERROR exit code ".$parseReturnCode." expected ".file_get_contents($rcFile); // TODO
+            $HtmlGenerator->addTestResult($srcFile, $inFile, $outFile, $rcFile, false, $parseReturnCode, -1, 'notset');
+//            echo "Parse: ERROR exit code ".$parseReturnCode." expected ".file_get_contents($rcFile); // TODO
         }
     }
 }
 $TmpFile->close();
 
+$HtmlGenerator->generate();
+
 /*--------------------------------------------------TRIDY/FUNKCE------------------------------------------------------*/
 
+class HtmlGenerator {
+    private $testResults;
+
+    public function __construct()
+    {
+        $this->testResults = [];
+    }
+
+    /*
+     * Vlozi vysledek testu do promenne $testResult
+     */
+    public function addTestResult($srcFile, $infile, $outFile, $rcFile, $pass, $parseReturnCode, $interpretReturnCode, $interpretOutput)
+    {
+        $this->testResults[] = [
+            'srcFile' => $srcFile,
+            'inFile' => $infile,
+            'outFile' => $outFile,
+            'rcFile' => $rcFile,
+            'parseReturnCode' => $parseReturnCode,
+            'interpretReturnCode' => $interpretReturnCode,
+            'interpretOutput' => $interpretOutput,
+            'pass' => $pass
+        ];
+    }
+
+    /*
+     * Vygeneruje html stranku na STDOUT
+     */
+    public function generate()
+    {
+        $html = '<!doctype html>
+        <html lang=\"cz\">
+        <head>
+            <meta charset=\"utf-8\">
+            <title>IPPcode18 Test</title>
+            <meta name=\"Přehled testování scriptů parse.php a interpret.py\">
+            <meta name=\"David Hříbek\">
+            
+            <style>
+            table {
+            
+                font-family: Helvetica, Arial, Helvetica, sans-serif;
+                border-collapse: collapse;
+                width: 70%;
+                margin: auto;
+            }
+            
+            table td, table th {
+                border: 1px solid #ddd;
+                padding: 8px;
+            }
+            
+            table tr:nth-child(even){background-color: #f2f2f2;}
+            
+            table tr:hover {background-color: #ddd;}
+            
+            table th {
+                padding-top: 12px;
+                padding-bottom: 12px;
+                text-align: left;
+                background-color: #2dbb73;
+                color: white;
+                text-align: center;
+            }
+            
+            #circle {
+              width: 20px;
+              height: 20px;
+              -webkit-border-radius: 25%;
+              -moz-border-radius: 25%;
+              border-radius: 100%;
+              margin: auto;
+            }
+            .no-output {
+                background: #c3baba;
+            }
+            .failed {
+                background: #bb3737;
+            }
+            .passed {
+                background: #2dbb73;
+            }
+            .center {
+                text-align: center;
+            }
+        </style>
+        </head>
+
+        <body>
+            <div>
+                <table>
+                    <tr>
+                        <th rowspan="2">IPPcode18 Source file</th>
+                        <th rowspan="2">Other files</th>
+                        <th colspan="2">Parse return code</th>
+                        <th colspan="2">Interpret return code</th>
+                        <th rowspan="2">Interpret Output</th>
+                        <th rowspan="2">Result</th>
+                    </tr>
+                    <tr>
+                        <th>Expected</th>
+                        <th>Returned</th>
+                        <th>Expected</th>
+                        <th>Returned</th>                        
+                    </tr>';
+
+        foreach ($this->testResults as $testResult)
+        {
+            $html = $html."<tr>";
+            // src file
+            $html = $html."<td>".$testResult['srcFile']."</td>\n";
+            // other files
+            $html = $html."<td>".$testResult['inFile']."</br>".$testResult['outFile']."</br>".$testResult['rcFile']."</td>\n";
+            // parse return code
+            if ($testResult['interpretOutput'] == 'correct')
+            {
+//                $interpretExpectedReturnCode // TODO
+            }
+
+            if (($rc = file_get_contents($testResult['rcFile'])) == "0")
+                $parserExpectedReturnCode = $interpretExpectedReturnCode = 0;
+            else
+            {
+                if(in_array($rc, ['31', '32', '52', '53', '54', '55', '56', '57', '58'])) // pocita se s chybou az v interpreteru
+                {
+                    $parserExpectedReturnCode = 0;
+                    $interpretExpectedReturnCode = $rc;
+                }
+                elseif (in_array($rc, ['21'])) // pocita se s chybou v parseru
+                {
+                    $parserExpectedReturnCode = $rc;
+                    $interpretExpectedReturnCode = "X";
+                }
+            }
+            $html = $html."<td class='center'>".$parserExpectedReturnCode."</td>\n";
+            $html = $html."<td class='center'>".$testResult['parseReturnCode']."</td>\n";
+            $html = $html."<td class='center'>".$interpretExpectedReturnCode."</td>\n";
+            $html = $html."<td class='center'>".$testResult['interpretReturnCode']."</td>\n";
+            // INTERPRET OUTPUT
+            if ($testResult['pass'])
+                $html = $html."<td><div id='circle' class='passed'></div></td>\n";
+            else
+                $html = $html."<td><div id='circle' class='failed'></div></td>";
+            $html = $html."</tr>\n";
+            // OK/FAIL
+            if ($testResult['pass'])
+                $html = $html."<td><div id='circle' class='passed'></div></td>\n";
+            else
+                $html = $html."<td><div id='circle' class='failed'></div></td>";
+            $html = $html."</tr>\n";
+        }
+
+        $html = $html.'</table>
+            </div>
+            <script></script>
+        </body>
+        </html>';
+
+        echo $html;
+//        fprintf(STDOUT, $html."\n");
+    }
+
+}
+
+/*
+ * Trida pro praci s docasnym souborem
+ */
 class TemporaryFile
 {
     private $file;
@@ -111,9 +286,7 @@ class TemporaryFile
     {
         $metaDatas = stream_get_meta_data($this->file);
         $tmpFilename = $metaDatas['uri'];
-//        echo "TMP NAME: ".$tmpFilename."\n"; // DEBUG
-        return shell_exec('cat '.$tmpFilename);
-        //return file_get_contents($tmpFilename);
+        return file_get_contents($tmpFilename);
     }
 
     /*
