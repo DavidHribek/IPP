@@ -14,6 +14,7 @@ $DirectoryScanner->scan($Arguments->directory, $Arguments->recursive);
 
 $TmpFile = new TemporaryFile();
 
+$TmpFile->create();
 foreach ($DirectoryScanner->srcFiles as $srcFile)
 {
     // pridruzene soubory .rc .in .out k aktualnimu .src
@@ -21,66 +22,56 @@ foreach ($DirectoryScanner->srcFiles as $srcFile)
     $inFile = array_shift($DirectoryScanner->inFiles);
     $outFile = array_shift($DirectoryScanner->outFiles);
 
-    echo "\n\n".$srcFile."\n";
-    exec('php5.6 '.$Arguments->parseScript.' < '.$srcFile, $parseOutput, $returnCode); // parse.php < soubor.src
-    if ($returnCode == 0) // nedoslo k chybe, vygenerovano XML
+    echo "\n\nFIL NAME: ".$srcFile."\n"; // DEBUG
+//    echo "FILE: |".$TmpFile->getAsString()."|\n"; // DEBUG
+    unset($parseOutput);
+    exec('php5.6 '.$Arguments->parseScript.' < '.$srcFile, $parseOutput, $parseReturnCode); // parse.php < soubor.src
+    if ($parseReturnCode == 0) // nasleduje interpretace
     {
-        $TmpFile->create();
         $TmpFile->writeExecOutput($parseOutput); // naplni tmp soubor vystupem z parseru
-//        echo "|".file_get_contents($inFile)."|";
-        exec('python3.6 '.$Arguments->intScript.' < '.file_get_contents($inFile), $interpretOutput, $returnCode); // interpret.py < XML // TODO vstup soubor
-//        exec('python3.6 '.$Arguments->intScript.' --source='.$TmpFile->getPath().' < '.file_get_contents($inFile), $interpretOutput, $returnCode); // interpret.py < XML // TODO vstup soubor
+        unset($interpretOutput);
+        exec('python3.6 '.$Arguments->intScript.' --source='.$TmpFile->getPath().' < '.$inFile, $interpretOutput, $interpretReturnCode); // interpret.py < XML
         $TmpFile->reset();
         $TmpFile->writeExecOutput($interpretOutput); // naplni tmp soubor vystupem z interpretu
-//        echo $TmpFile->getAsString();return;
-        if ($returnCode == 0)
+//        echo "INT OUTP: |".$TmpFile->getAsString()."|\n"; // DEBUG
+//        echo "REF OUTP: |".file_get_contents($outFile)."|\n"; // DEBUG
+        if ($interpretReturnCode == 0)
         {
-//            echo $TmpFile->getAsString();
-//            echo file_get_contents($outFile); break;
-            exec('diff '.$TmpFile->getPath().' '.$outFile, $output /*dale nepouzito*/, $returnCode);
-            if ($returnCode == 0)
+            exec('diff '.$TmpFile->getPath().' '.$outFile, $output /*dale nepouzito*/, $diffReturnCode); // porovnani vystupu interpretu a .out soboru
+            if ($diffReturnCode == 0) // vystup interpretu == .out soubor
             {
-                echo "PASS"; // TODO
+                echo "Inter: PASS output"; // TODO HTML
             }
             else
             {
-                echo "Interp: BAD OUTPUT"; // TODO
+                echo "Inter: ERROR output"; // TODO HTML
             }
         }
         else // chyba interpretace
         {
-            if ($returnCode == file_get_contents($rcFile))
+            if ($interpretReturnCode == file_get_contents($rcFile)) // chybove kody se shoduji
             {
-                echo "PASS"; // TODO
+                echo "Inter: PASS exit code"; // TODO HTML
             }
-            else
+            else // chybove kody se neshoduji
             {
-                echo "Interpret: EXIT CODE ".$returnCode." EXPECTED ".file_get_contents($rcFile); // TODO
+                echo "Inter: ERROR exit code ".$interpretReturnCode." expected ".file_get_contents($rcFile); // TODO HTML
             }
         }
     }
     else // chyba parsovani
     {
-        if ($returnCode == file_get_contents($rcFile)) // chybove kody se shoduji
+        if ($parseReturnCode == file_get_contents($rcFile)) // chybove kody se shoduji
         {
-            echo "PARSER: Ok exit code"; // TODO
+            echo "Parse: PASS exit code"; // TODO HTML
         }
         else // chybove kody se neshoduji
         {
-            echo "Parser: EXIT CODE ".$returnCode." EXPECTED ".file_get_contents($rcFile); // TODO
+            echo "Parse: ERROR exit code ".$parseReturnCode." expected ".file_get_contents($rcFile); // TODO
         }
     }
-
 }
-
-
-
-
-
-
-
-
-
+$TmpFile->close();
 
 /*--------------------------------------------------TRIDY/FUNKCE------------------------------------------------------*/
 
@@ -120,7 +111,9 @@ class TemporaryFile
     {
         $metaDatas = stream_get_meta_data($this->file);
         $tmpFilename = $metaDatas['uri'];
-        return file_get_contents($tmpFilename);
+//        echo "TMP NAME: ".$tmpFilename."\n"; // DEBUG
+        return shell_exec('cat '.$tmpFilename);
+        //return file_get_contents($tmpFilename);
     }
 
     /*
@@ -137,8 +130,8 @@ class TemporaryFile
      */
     public function writeExecOutput($array)
     {
-        foreach ($array as $a)
-            fwrite($this->file, $a."\n");
+//        file_put_contents($this->getPath(), implode("\n", $array));
+        fwrite($this->file, implode("\n", $array));
     }
 }
 
