@@ -1,7 +1,0 @@
-.ippcode18 #navesti, while, vypis
-LABEL Start
-DEFVAR GF@var
-MOVE GF@var string@je\032to\032\032ok
-JUMPIFNEQ Start GF@var string@je\032to\032ok
-WRITE GF@var
-WRITE string@\010dalsi\032radek

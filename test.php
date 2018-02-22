@@ -9,110 +9,99 @@
 $Arguments = new Arguments();
 $Arguments->checkArguments();
 
-$DirectoryScanner = new DirectoryScanner($Arguments->directory);
+$DirectoryScanner = new DirectoryScanner();
 $DirectoryScanner->scan($Arguments->directory, $Arguments->recursive);
 $TmpFile = new TemporaryFile();
 $HtmlGenerator = new HtmlGenerator();
 
-//var_dump($DirectoryScanner->srcFiles);
-//var_dump($DirectoryScanner->rcFiles);
-//var_dump($DirectoryScanner->inFiles);
-//var_dump($DirectoryScanner->outFiles);
-//exit();
 
 $TmpFile->create();
-foreach ($DirectoryScanner->srcFiles as $srcFile)
-{
-    // pridruzene soubory .rc .in .out k aktualnimu .src
-//    $rcFile = array_shift($DirectoryScanner->rcFiles);
-//    $inFile = array_shift($DirectoryScanner->inFiles);
-//    $outFile = array_shift($DirectoryScanner->outFiles);
-
-    $rcFile = array_shift($DirectoryScanner->rcFiles);
-    $inFile = array_shift($DirectoryScanner->inFiles);
-    $outFile = array_shift($DirectoryScanner->outFiles);
-
-
-
-    fprintf(STDERR,"\n\nFIL NAME: ".$srcFile."\n"); // DEBUG
-//    fprintf(STDERR, "FILE: |".$TmpFile->getAsString()."|\n"); // DEBUG
-    unset($parseOutput);
-    exec('php5.6 '.$Arguments->parseScript.' < '.$srcFile, $parseOutput, $parseReturnCode); // parse.php < soubor.src
-    if ($parseReturnCode == 0) // nasleduje interpretace
+foreach ($DirectoryScanner->directories as $dir) {
+    foreach ($DirectoryScanner->testFiles[$dir] as $fileName)
     {
-        $TmpFile->writeExecOutput($parseOutput); // naplni tmp soubor vystupem z parseru
-        unset($interpretOutput);
-        exec('python3.6 '.$Arguments->intScript.' --source='.$TmpFile->getPath().' < '.$inFile, $interpretOutput, $interpretReturnCode); // interpret.py < XML
-        $TmpFile->reset();
-        $TmpFile->writeExecOutput($interpretOutput); // naplni tmp soubor vystupem z interpretu
-//        fprintf(STDERR, "INT OUTP: |".$TmpFile->getAsString()."|\n"); // DEBUG
-//        fprintf(STDERR, "REF OUTP: |".file_get_contents($outFile)."|\n"); // DEBUG
-        if ($interpretReturnCode == file_get_contents($rcFile)) // ocekavany navratovy kod
-        {
-            if ($interpretReturnCode == 0) // porovnani vystupu interpretu s referencnim vystupem
-            {
-                exec('diff '.$TmpFile->getPath().' '.$outFile, $output /*dale nepouzito*/, $diffReturnCode); // porovnani vystupu interpretu a .out soboru
-                if ($diffReturnCode == 0) // vystup interpretu == .out soubor
-                {
-                    $HtmlGenerator->addTestResult($srcFile, $inFile, $outFile, $rcFile, true, 0, 0);
-                }
-                else
-                {
-                    $HtmlGenerator->addTestResult($srcFile, $inFile, $outFile, $rcFile, false, 0, 0);
-                }
-            }
-            else
-            {
-                $HtmlGenerator->addTestResult($srcFile, $inFile, $outFile, $rcFile, true, 0, $interpretReturnCode);
-            }
-        }
-        else // neocekavany navratovy kod
-        {
-            $HtmlGenerator->addTestResult($srcFile, $inFile, $outFile, $rcFile, false, 0, $interpretReturnCode);
-        }
+        $srcFile = $dir.$fileName.'.src';
+        $rcFile = $dir.$fileName.'.rc';
+        $inFile = $dir.$fileName.'.in';
+        $outFile = $dir.$fileName.'.out';
 
-//        if ($interpretReturnCode == 0)
-//        {
-//            exec('diff '.$TmpFile->getPath().' '.$outFile, $output /*dale nepouzito*/, $diffReturnCode); // porovnani vystupu interpretu a .out soboru
-//            if ($diffReturnCode == 0) // vystup interpretu == .out soubor
-//            {
-//                $HtmlGenerator->addTestResult($srcFile, $inFile, $outFile, $rcFile, true, 0, 0, 'correct');
-//            }
-//            else
-//            {
-//                $HtmlGenerator->addTestResult($srcFile, $inFile, $outFile, $rcFile, false, 0, 0, 'incorrect');
-//            }
-//        }
-//        else // chyba interpretace
-//        {
-//            if ($interpretReturnCode == file_get_contents($rcFile)) // chybove kody se shoduji
-//            {
-//                $HtmlGenerator->addTestResult($srcFile, $inFile, $outFile, $rcFile, true, 0, $interpretReturnCode, 'notset');
-//            }
-//            else // chybove kody se neshoduji
-//            {
-//                $HtmlGenerator->addTestResult($srcFile, $inFile, $outFile, $rcFile, false, 0, $interpretReturnCode, 'notset');
-//            }
-//        }
-    }
-    else // chyba parsovani
-    {
-        if ($parseReturnCode == file_get_contents($rcFile)) // ocekavany navratovy kod
+        $srcFileName = $fileName.'.src';
+        $rcFileName = $fileName.'.rc';
+        $inFileName = $fileName.'.in';
+        $outFileName = $fileName.'.out';
+
+
+        fprintf(STDERR, "\n\nFIL NAME: " . $srcFile . "\n"); // DEBUG
+        unset($parseOutput);
+        exec('php5.6 ' . $Arguments->parseScript . ' < ' . $srcFile, $parseOutput, $parseReturnCode); // parse.php < soubor.src
+        if ($parseReturnCode == 0) // nasleduje interpretace
         {
-            $HtmlGenerator->addTestResult($srcFile, $inFile, $outFile, $rcFile, true, $parseReturnCode, '');
-        }
-        else // neocekavany navratovy kod
+            $TmpFile->writeExecOutput($parseOutput); // naplni tmp soubor vystupem z parseru
+            unset($interpretOutput);
+            exec('python3.6 ' . $Arguments->intScript . ' --source=' . $TmpFile->getPath() . ' < ' . $inFile, $interpretOutput, $interpretReturnCode); // interpret.py < XML
+            $TmpFile->reset();
+            $TmpFile->writeExecOutput($interpretOutput); // naplni tmp soubor vystupem z interpretu
+            fprintf(STDERR, "INT OUTP: |".$TmpFile->getAsString()."|\n"); // DEBUG
+            fprintf(STDERR, "REF OUTP: |".file_get_contents($outFile)."|\n"); // DEBUG
+            if ($interpretReturnCode == file_get_contents($rcFile)) // ocekavany navratovy kod
+            {
+                if ($interpretReturnCode == 0) // porovnani vystupu interpretu s referencnim vystupem
+                {
+                    exec('diff ' . $TmpFile->getPath() . ' ' . $outFile, $output /*dale nepouzito*/, $diffReturnCode); // porovnani vystupu interpretu a .out soboru
+                    if ($diffReturnCode == 0) // vystup interpretu == .out soubor
+                    {
+                        $HtmlGenerator->addTestResult($srcFile, $inFile, $outFile, $rcFile, true, 0, 0);
+                    } else {
+                        $HtmlGenerator->addTestResult($srcFile, $inFile, $outFile, $rcFile, false, 0, 0);
+                    }
+                } else {
+                    $HtmlGenerator->addTestResult($srcFile, $inFile, $outFile, $rcFile, true, 0, $interpretReturnCode);
+                }
+            } else // neocekavany navratovy kod
+            {
+                $HtmlGenerator->addTestResult($srcFile, $inFile, $outFile, $rcFile, false, 0, $interpretReturnCode);
+            }
+        //        if ($interpretReturnCode == 0)
+    //        {
+    //            exec('diff '.$TmpFile->getPath().' '.$outFile, $output /*dale nepouzito*/, $diffReturnCode); // porovnani vystupu interpretu a .out soboru
+    //            if ($diffReturnCode == 0) // vystup interpretu == .out soubor
+    //            {
+    //                $HtmlGenerator->addTestResult($srcFile, $inFile, $outFile, $rcFile, true, 0, 0, 'correct');
+    //            }
+    //            else
+    //            {
+    //                $HtmlGenerator->addTestResult($srcFile, $inFile, $outFile, $rcFile, false, 0, 0, 'incorrect');
+    //            }
+    //        }
+    //        else // chyba interpretace
+    //        {
+    //            if ($interpretReturnCode == file_get_contents($rcFile)) // chybove kody se shoduji
+    //            {
+    //                $HtmlGenerator->addTestResult($srcFile, $inFile, $outFile, $rcFile, true, 0, $interpretReturnCode, 'notset');
+    //            }
+    //            else // chybove kody se neshoduji
+    //            {
+    //                $HtmlGenerator->addTestResult($srcFile, $inFile, $outFile, $rcFile, false, 0, $interpretReturnCode, 'notset');
+    //            }
+    //        }
+        } else // chyba parsovani
         {
-            $HtmlGenerator->addTestResult($srcFile, $inFile, $outFile, $rcFile, false, $parseReturnCode);
+            if ($parseReturnCode == file_get_contents($rcFile)) // ocekavany navratovy kod
+            {
+                $HtmlGenerator->addTestResult($srcFile, $inFile, $outFile, $rcFile, true, $parseReturnCode, '');
+            } else // neocekavany navratovy kod
+            {
+                $HtmlGenerator->addTestResult($srcFile, $inFile, $outFile, $rcFile, false, $parseReturnCode);
+            }
         }
     }
 }
+
 $TmpFile->close();
-
 $HtmlGenerator->generate();
-
 /*--------------------------------------------------TRIDY/FUNKCE------------------------------------------------------*/
-
+/*
+ * Trida pro vygenerovani HTML vystupu do STDOUT
+ */
 class HtmlGenerator {
     private $testResults;
 
@@ -147,7 +136,8 @@ class HtmlGenerator {
         $testCodesPassedCount = 0;
 
 
-        $html = '<!doctype html>
+        $html =
+        '<!doctype html>
         <html lang=\"cz\">
         <head>
             <meta charset=\"utf-8\">
@@ -156,76 +146,74 @@ class HtmlGenerator {
             <meta name=\"David Hříbek\">
             
             <style>
-            h1 {
-                text-align: center;
-                color: #676d6a;
-            }
-            #main {
-                width: 70%;
-                margin: auto;
-            }
-            tr#summary{
-                background: #676d6a;
-                color: white;            
-            }
-            table {
-                -webkit-box-shadow: 1px 1px 5px 0px rgba(0,0,0,0.47);
-                -moz-box-shadow: 1px 1px 5px 0px rgba(0,0,0,0.47);
-                box-shadow: 1px 1px 5px 0px rgba(0,0,0,0.47);
-                font-family: Helvetica, Arial, Helvetica, sans-serif;
-                border-collapse: collapse;
-            }
-            
-            table td, table th {
-//                border: 1px solid #ddd;
-                padding: 8px;
-            }
-            
-            table tr:nth-child(even){background-color: #f2f2f2;}
-            
-            table tr:hover {background-color: #ddd;}
-            
-            table th {
-                padding-top: 12px;
-                padding-bottom: 12px;
-                text-align: left;
-                background-color: #676d6a;
-                color: white;
-                text-align: center;
-            }
-            
-            #circle {
-              width: 20px;
-              height: 20px;
-              -webkit-border-radius: 25%;
-              -moz-border-radius: 25%;
-              border-radius: 100%;
-              margin: auto;
-            }
-            .background-gray{
-                background: #dcdcd9;
-            }
-            .failed {
-                background: #bb3737;
-            }
-            .passed {
-                background: #2dbb73;
-            }
-            .center {
-                text-align: center;
-            }
-            
-            ul li {
-                display: inline;
-                float: left;
-                padding: 0 15px;
-            }
-            ul li div {
-                float: left;
-                margin-right: 10px !important;
-            }
-            
-        </style>
+                h1 {
+                    text-align: center;
+                    color: #676d6a;
+                }
+                #main {
+                    width: 70%;
+                    margin: auto;
+                }
+                tr#summary{
+                    background: #676d6a;
+                    color: white;            
+                }
+                table {
+                    -webkit-box-shadow: 1px 1px 5px 0px rgba(0,0,0,0.47);
+                    -moz-box-shadow: 1px 1px 5px 0px rgba(0,0,0,0.47);
+                    box-shadow: 1px 1px 5px 0px rgba(0,0,0,0.47);
+                    font-family: Helvetica, Arial, Helvetica, sans-serif;
+                    border-collapse: collapse;
+                }
+                
+                table td, table th {
+                    padding: 8px;
+                }
+                
+                table tr:nth-child(even){background-color: #f2f2f2;}
+                
+                table tr:hover {background-color: #ddd;}
+                
+                table th {
+                    padding-top: 12px;
+                    padding-bottom: 12px;
+                    text-align: left;
+                    background-color: #676d6a;
+                    color: white;
+                    text-align: center;
+                }
+                
+                #circle {
+                  width: 20px;
+                  height: 20px;
+                  -webkit-border-radius: 25%;
+                  -moz-border-radius: 25%;
+                  border-radius: 100%;
+                  margin: auto;
+                }
+                .background-gray{
+                    background: #dcdcd9;
+                }
+                .failed {
+                    background: #bb3737;
+                }
+                .passed {
+                    background: #2dbb73;
+                }
+                .center {
+                    text-align: center;
+                }
+                
+                ul li {
+                    display: inline;
+                    float: left;
+                    padding: 0 15px;
+                }
+                ul li div {
+                    float: left;
+                    margin-right: 10px !important;
+                }
+            </style>
         </head>
 
         <body>
@@ -246,7 +234,8 @@ class HtmlGenerator {
                             <th>Expected</th>
                             <th>Passed</th>  
                         </tr>
-                    </thead><tbody>';
+                    </thead>
+                    <tbody>';
 
         foreach ($this->testResults as $testResult)
         {
@@ -258,33 +247,7 @@ class HtmlGenerator {
             $html = $html."<td>".$testResult['srcFile']."</td>\n";
             // ROW other files
             $html = $html."<td>".$testResult['inFile']."</br>".$testResult['outFile']."</br>".$testResult['rcFile']."</td>\n";
-            // ROW parse return code
-//            if ($testResult['interpretOutput'] == 'correct')
-//            {
-////                $interpretExpectedReturnCode // TODO
-//            }
-
-//            // zjisteni ocekavanych navratovych kodu
-//            if (($rc = file_get_contents($testResult['rcFile'])) == "0")
-//                $parserExpectedReturnCode = $interpretExpectedReturnCode = 0;
-//            else
-//            {
-//                if(in_array($rc, ['31', '32', '52', '53', '54', '55', '56', '57', '58'])) // pocita se s chybou az v interpreteru
-//                {
-//                    $parserExpectedReturnCode = 0;
-//                    $interpretExpectedReturnCode = $rc;
-//                }
-//                elseif (in_array($rc, ['21'])) // pocita se s chybou v parseru
-//                {
-//                    $parserExpectedReturnCode = $rc;
-//                    $interpretExpectedReturnCode = "X";
-//                }
-//            }
-//            $html = $html."<td class='center'>".$parserExpectedReturnCode."</td>\n";
-//            $html = $html."<td class='center'>".$testResult['parseReturnCode']."</td>\n";
-//            $html = $html."<td class='center'>".$interpretExpectedReturnCode."</td>\n";
-//            $html = $html."<td class='center'>".$testResult['interpretReturnCode']."</td>\n";
-
+            // ROW return code
             $html = $html."<td class='center'>".$testResult['parseReturnCode']."</td>\n";
             $html = $html."<td class='center'>".$testResult['interpretReturnCode']."</td>\n";
             $html = $html."<td class='center'>".file_get_contents($testResult['rcFile'])."</td>\n";
@@ -305,22 +268,22 @@ class HtmlGenerator {
             $html = $html."</tr>\n";
         }
 
-        $html = $html.'
-                <tr id="summary">
-                    <td colspan="3">Summary</td>
-                    <td colspan="3"></td>
-                    <td class="center">'.$testCodesPassedCount.'/'.$testCount.'</td>
-                    <td class="center">'.$testPassedCount.'/'.$testCount.'</td>
-                </tr>
-            </tbody>
+        $html = $html.
+                    '<tr id="summary">
+                        <td colspan="3">Summary</td>
+                        <td colspan="3"></td>
+                        <td class="center">'.$testCodesPassedCount.'/'.$testCount.'</td>
+                        <td class="center">'.$testPassedCount.'/'.$testCount.'</td>
+                    </tr>
+                </tbody>
             </table>
-            <ul>
+                <ul>
                     <li>PASSED<div id=\'circle\' class=\'passed\'></div></li>
                     <li>FAILED<div id=\'circle\' class=\'failed\'></div></li>
                 </ul>
             </div>
             <script></script>
-        </body>
+            </body>
         </html>';
 
         echo $html;
@@ -390,28 +353,18 @@ class TemporaryFile
     }
 }
 
-
 /*
  * Trida pro skenovani slozky, ziskani nazvu souboru, generovani novych souboru (pokud chybi)
  */
 class DirectoryScanner
 {
-    public $srcFiles;
-    public $rcFiles;
-    public $inFiles;
-    public $outFiles;
+    public $directories;
+    public $testFiles;
 
-    private $baseDir;
-
-
-    public function __construct($baseDir)
+    public function __construct()
     {
-        $this->srcFiles = [];
-        $this->rcFiles = [];
-        $this->inFiles = [];
-        $this->outFiles = [];
-
-        $this->baseDir = $baseDir;
+        $this->directories = [];
+        $this->testFiles = [];
     }
 
     /*
@@ -419,102 +372,40 @@ class DirectoryScanner
      */
     public function scan($dir, $recursive)
     {
+        $Directory = new RecursiveDirectoryIterator($dir);
         if ($recursive) // pokud byl zadan argument --recursive
-        {
-            $Directory = new RecursiveDirectoryIterator($dir);
             $Iterator = new RecursiveIteratorIterator($Directory);
-        }
         else
-        {
-            $Directory = new DirectoryIterator($dir);
             $Iterator = new IteratorIterator($Directory);
-        }
 
-        // soubory .src
         $Regex = new RegexIterator($Iterator, '/^.+\.src$/i', RecursiveRegexIterator::GET_MATCH);
         foreach ($Regex as $r)
-            array_push($this->srcFiles, $r[0]);
+        {
+            $name = $this->getFileName($r[0]); // nazev souboru bez pripony
+            $dir = $this->getDirectoryPath($r[0]); // cesta ke slozce souboru
+            if (!in_array($dir, $this->directories)) // zapamatovani unikatni slozky
+                $this->directories[] = $dir;
 
-        // soubory .rc
-        $Regex = new RegexIterator($Iterator, '/^.+\.rc$/i', RecursiveRegexIterator::GET_MATCH);
-        foreach ($Regex as $r)
-            array_push($this->rcFiles, $r[0]);
-
-        // soubory .in
-        $Regex = new RegexIterator($Iterator, '/^.+\.in$/i', RecursiveRegexIterator::GET_MATCH);
-        foreach ($Regex as $r)
-            array_push($this->inFiles, $r[0]);
-
-        // soubory .out
-        $Regex = new RegexIterator($Iterator, '/^.+\.out$/i', RecursiveRegexIterator::GET_MATCH);
-        foreach ($Regex as $r)
-            array_push($this->outFiles, $r[0]);
-
-        if (count($this->srcFiles) == 0)
-        { // test musi mit k dispozici zdrojove soubory
-            fprintf(STDERR, "No source files!\n");
-            exit(0);
+            $this->testFiles[$dir][] = $name;
+            if (!file_exists($dir.$name.'.rc'))
+                $this->generateFile($dir, $name.'.rc', "0");
+            if (!file_exists($dir.$name.'.in'))
+                $this->generateFile($dir, $name.'.in', "");
+            if (!file_exists($dir.$name.'.out'))
+                $this->generateFile($dir, $name.'.out', "");
         }
 
-        $this->generateFiles(); // vygeneruje chybejici soubory
-
-        // seradit soubory
-        sort($this->srcFiles);
-        sort($this->rcFiles);
-        sort($this->inFiles);
-        sort($this->outFiles);
-
-//        var_dump($this->srcFiles);
-//        var_dump($this->rcFiles);
-//        var_dump($this->inFiles);
-//        var_dump($this->outFiles);
+        sort($this->directories); // serazeni slozek
+        foreach ($this->testFiles as &$dir) // serazeni souboru ve slozkach
+            sort($dir);
     }
 
     /*
-     * Vygeneruje chybejici soubory
+     * Vygeneruje soubor
      */
-    private function generateFiles()
+    private function generateFile($directory, $fileName, $content)
     {
-        $rcPath = (count($this->rcFiles) > 0)? $this->getDirectoryPath($this->rcFiles[0]): $this->baseDir;
-        $inPath = (count($this->inFiles) > 0)? $this->getDirectoryPath($this->inFiles[0]): $this->baseDir;
-        $outPath = (count($this->outFiles) > 0)? $this->getDirectoryPath($this->outFiles[0]): $this->baseDir;
-
-        // generovani .rc souboru
-        foreach ($this->srcFiles as $file)
-        {
-            $expectedFile = $rcPath.$this->getFileName($file).".rc";
-            if (!file_exists($expectedFile))
-            { // vytvori soubor s rc 0, pokud soubor $file neexistuje v slozce rc souboru
-                file_put_contents($expectedFile, "0"); // TODO uncomment
-                array_push($this->rcFiles, $expectedFile);
-                fprintf(STDERR, "Created new file: ".$expectedFile."\n");
-            }
-        }
-
-        // generovani .in souboru
-        foreach ($this->srcFiles as $file)
-        {
-            $expectedFile = $inPath.$this->getFileName($file).".in";
-            if (!file_exists($expectedFile))
-            { // vytvori soubor s rc 0, pokud soubor $file neexistuje v slozce rc souboru
-                file_put_contents($inPath.$this->getFileName($file).".in", ""); // TODO uncomment
-                array_push($this->inFiles, $expectedFile);
-                fprintf(STDERR, "Created new file: ".$expectedFile."\n");
-            }
-        }
-
-        // generovani .out souboru
-        foreach ($this->srcFiles as $file)
-        {
-            $expectedFile = $outPath.$this->getFileName($file).".out";
-            if (!file_exists($expectedFile))
-            { // vytvori soubor s rc 0, pokud soubor $file neexistuje v slozce rc souboru
-                file_put_contents($outPath.$this->getFileName($file).".out", ""); // TODO uncomment
-                array_push($this->outFiles, $expectedFile);
-                fprintf(STDERR, "Created new file: ".$expectedFile."\n");
-            }
-        }
-
+        file_put_contents($directory.$fileName, $content);
     }
 
     /*
