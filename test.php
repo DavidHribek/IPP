@@ -14,13 +14,25 @@ $DirectoryScanner->scan($Arguments->directory, $Arguments->recursive);
 $TmpFile = new TemporaryFile();
 $HtmlGenerator = new HtmlGenerator();
 
+//var_dump($DirectoryScanner->srcFiles);
+//var_dump($DirectoryScanner->rcFiles);
+//var_dump($DirectoryScanner->inFiles);
+//var_dump($DirectoryScanner->outFiles);
+//exit();
+
 $TmpFile->create();
 foreach ($DirectoryScanner->srcFiles as $srcFile)
 {
     // pridruzene soubory .rc .in .out k aktualnimu .src
+//    $rcFile = array_shift($DirectoryScanner->rcFiles);
+//    $inFile = array_shift($DirectoryScanner->inFiles);
+//    $outFile = array_shift($DirectoryScanner->outFiles);
+
     $rcFile = array_shift($DirectoryScanner->rcFiles);
     $inFile = array_shift($DirectoryScanner->inFiles);
     $outFile = array_shift($DirectoryScanner->outFiles);
+
+
 
     fprintf(STDERR,"\n\nFIL NAME: ".$srcFile."\n"); // DEBUG
 //    fprintf(STDERR, "FILE: |".$TmpFile->getAsString()."|\n"); // DEBUG
@@ -85,15 +97,13 @@ foreach ($DirectoryScanner->srcFiles as $srcFile)
     }
     else // chyba parsovani
     {
-        if ($parseReturnCode == file_get_contents($rcFile)) // chybove kody se shoduji
+        if ($parseReturnCode == file_get_contents($rcFile)) // ocekavany navratovy kod
         {
-            $HtmlGenerator->addTestResult($srcFile, $inFile, $outFile, $rcFile, false, $parseReturnCode, '');
-//            echo "Parse: PASS exit code"; // TODO HTML
+            $HtmlGenerator->addTestResult($srcFile, $inFile, $outFile, $rcFile, true, $parseReturnCode, '');
         }
-        else // chybove kody se neshoduji
+        else // neocekavany navratovy kod
         {
             $HtmlGenerator->addTestResult($srcFile, $inFile, $outFile, $rcFile, false, $parseReturnCode);
-//            echo "Parse: ERROR exit code ".$parseReturnCode." expected ".file_get_contents($rcFile); // TODO
         }
     }
 }
