@@ -119,7 +119,7 @@ class DirectoryScanner
                 $this->generateFile($dir, $fileName.'.out', "");
         }
 
-
+        array_multisort($this->testFiles, SORT_ASC);
         sort($this->directories); // serazeni slozek
 //        foreach ($this->testFiles as &$dir) // serazeni souboru ve slozkach
 //            sort($dir);
