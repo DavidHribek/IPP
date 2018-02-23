@@ -14,18 +14,7 @@ $DirectoryScanner->scan($Arguments->directory, $Arguments->recursive);
 $TmpFile = new TemporaryFile();
 $HtmlGenerator = new HtmlGenerator($DirectoryScanner);
 
-//var_dump($DirectoryScanner->testFiles);
 
-//$DirectoryScanner->addTestResult('dir','file', 0, 0, true);
-//$DirectoryScanner->addTestResult('dir','file2', 1, 1, true);
-//$DirectoryScanner->addTestResult('dir','file3', 2, 2, true);
-//$DirectoryScanner->addTestResult('dir2','file4', 2, 2, true);
-var_dump($DirectoryScanner->testFiles);
-exit();
-//echo "\n\n\n\n";
-//
-//var_dump($DirectoryScanner->testFiles);
-//exit();
 $TmpFile->create();
 foreach ($DirectoryScanner->directories as $dir)
 {
@@ -40,8 +29,6 @@ foreach ($DirectoryScanner->directories as $dir)
         $rcFileName = $test['name'] . '.rc';
         $inFileName = $test['name'] . '.in';
         $outFileName = $test['name'] . '.out';
-
-//        echo $srcFileName."\n";
 
 //        fprintf(STDERR, "\n\nFIL NAME: " . $srcFile . "\n"); // DEBUG
         unset($parseOutput);
@@ -73,29 +60,6 @@ foreach ($DirectoryScanner->directories as $dir)
             {
                 $DirectoryScanner->addTestResult($dir, $test['name'], 0, $interpretReturnCode, false);
             }
-            //        if ($interpretReturnCode == 0)
-                //        {
-                //            exec('diff '.$TmpFile->getPath().' '.$outFile, $output /*dale nepouzito*/, $diffReturnCode); // porovnani vystupu interpretu a .out soboru
-                //            if ($diffReturnCode == 0) // vystup interpretu == .out soubor
-                //            {
-                //                $HtmlGenerator->addTestResult($srcFile, $inFile, $outFile, $rcFile, true, 0, 0, 'correct');
-                //            }
-                //            else
-                //            {
-                //                $HtmlGenerator->addTestResult($srcFile, $inFile, $outFile, $rcFile, false, 0, 0, 'incorrect');
-                //            }
-                //        }
-                //        else // chyba interpretace
-                //        {
-                //            if ($interpretReturnCode == file_get_contents($rcFile)) // chybove kody se shoduji
-                //            {
-                //                $HtmlGenerator->addTestResult($srcFile, $inFile, $outFile, $rcFile, true, 0, $interpretReturnCode, 'notset');
-                //            }
-                //            else // chybove kody se neshoduji
-                //            {
-                //                $HtmlGenerator->addTestResult($srcFile, $inFile, $outFile, $rcFile, false, 0, $interpretReturnCode, 'notset');
-                //            }
-                //        }
         } else // chyba parsovani
         {
             if ($parseReturnCode == file_get_contents($rcFile)) // ocekavany navratovy kod
@@ -110,7 +74,6 @@ foreach ($DirectoryScanner->directories as $dir)
 }
 
 $TmpFile->close();
-//var_dump($DirectoryScanner->testFiles);
 $HtmlGenerator->generate();
 /*--------------------------------------------------TRIDY/FUNKCE------------------------------------------------------*/
 
@@ -142,31 +105,24 @@ class DirectoryScanner
         $Regex = new RegexIterator($Iterator, '/^.+\.src$/i', RecursiveRegexIterator::GET_MATCH);
         foreach ($Regex as $r)
         {
-            $name = $this->getFileName($r[0]); // nazev souboru bez pripony
-            $dir = $this->getDirectoryPath($r[0]); // cesta ke slozce souboru
+            $fileName = $this->getFileName($r[0]); // nazev souboru bez pripony
+            $dir = $this->getDirectoryPath(realpath($r[0])); // cesta ke slozce souboru
             if (!in_array($dir, $this->directories)) // zapamatovani unikatni slozky
-            {
                 $this->directories[] = $dir;
-            }
 
-//            $this->testFiles[$dir][] = $name;
-            $this->testFiles[$dir][$name]['name'] = $name;
-//            echo $name;
-//            $this->testFiles[$dir][$name]['name'] = $name;
-//            $this->testFiles['dir']['file']['name'] = 'nazev';
-//            $this->nevim['dir']['file']['name'] = 'nazev';
-//            var_dump($this->testFiles);
-            if (!file_exists($dir.$name.'.rc'))
-                $this->generateFile($dir, $name.'.rc', "0");
-            if (!file_exists($dir.$name.'.in'))
-                $this->generateFile($dir, $name.'.in', "");
-            if (!file_exists($dir.$name.'.out'))
-                $this->generateFile($dir, $name.'.out', "");
+            $this->testFiles[$dir][$fileName]['name'] = $fileName;
+            if (!file_exists($dir.$fileName.'.rc'))
+                $this->generateFile($dir, $fileName.'.rc', "0");
+            if (!file_exists($dir.$fileName.'.in'))
+                $this->generateFile($dir, $fileName.'.in', "");
+            if (!file_exists($dir.$fileName.'.out'))
+                $this->generateFile($dir, $fileName.'.out', "");
         }
 
+
         sort($this->directories); // serazeni slozek
-        foreach ($this->testFiles as &$dir) // serazeni souboru ve slozkach
-            sort($dir);
+//        foreach ($this->testFiles as &$dir) // serazeni souboru ve slozkach
+//            sort($dir);
     }
 
     /*
@@ -192,7 +148,7 @@ class DirectoryScanner
      */
     private function getFileName($pathToFile)
     {
-        return preg_replace('/^(.*\/)?(.+)\.(in|out|rc|src)$/','\2', $pathToFile);
+        return preg_replace('/^(.*\/)?(.+)\.src$/','\2', $pathToFile);
     }
 
     /*
@@ -311,8 +267,6 @@ class HtmlGenerator {
         $this->DirectoryScanner = $DirectoryScanner;
     }
 
-
-
     /*
      * Vygeneruje html stranku na STDOUT
      */
@@ -321,8 +275,6 @@ class HtmlGenerator {
         $testCount = 0;
         $testPassedCount = 0;
         $testCodesPassedCount = 0;
-//        var_dump($this->DirectoryScanner->testFiles);
-//        exit();
 
         $html =
         '<!doctype html>
@@ -343,10 +295,11 @@ class HtmlGenerator {
                     margin: auto;
                 }
                 tr#summary{
-                    background: #676d6a;
+                    background: #3686d0;
                     color: white;            
                 }
                 table {
+                    width: 100%;
                     -webkit-box-shadow: 1px 1px 5px 0px rgba(0,0,0,0.47);
                     -moz-box-shadow: 1px 1px 5px 0px rgba(0,0,0,0.47);
                     box-shadow: 1px 1px 5px 0px rgba(0,0,0,0.47);
@@ -358,6 +311,10 @@ class HtmlGenerator {
                     padding: 8px;
                 }
                 
+                table tbody tr {
+                    //border: 2px solid white;
+                }
+                
                 table tr:nth-child(even){background-color: #f2f2f2;}
                 
                 table tr:hover {background-color: #ddd;}
@@ -366,32 +323,31 @@ class HtmlGenerator {
                     padding-top: 12px;
                     padding-bottom: 12px;
                     text-align: left;
-                    background-color: #676d6a;
+                    background-color: #3686d0;
                     color: white;
                     text-align: center;
                 }
-                
-                #circle {
-                  width: 20px;
-                  height: 20px;
-                  -webkit-border-radius: 25%;
-                  -moz-border-radius: 25%;
-                  border-radius: 100%;
-                  margin: auto;
+                .dir-heading {
+                    text-align: left;
+                    padding: 5px 15px;    
+                    background-color: #54616d !important;  
+                    color: white;;          
                 }
                 .background-gray{
                     background: #dcdcd9;
                 }
                 .failed {
-                    background: #bb3737;
+                    color: #e03d3d;
                 }
                 .passed {
-                    background: #2dbb73;
+                    color: #00b700;
                 }
                 .center {
                     text-align: center;
                 }
-                
+                .left {
+                    text-align: left;
+                }
                 ul li {
                     display: inline;
                     float: left;
@@ -406,77 +362,98 @@ class HtmlGenerator {
 
         <body>
             <div id="main">
-                <h1>IPPcode18</h1>
-                <table>
+                <pre class="center">
+$$$$$$\ $$$$$$$\  $$$$$$$\                            $$\             $$\   $$$$$$\  
+\_$$  _|$$  __$$\ $$  __$$\                           $$ |          $$$$ | $$  __$$\ 
+  $$ |  $$ |  $$ |$$ |  $$ | $$$$$$$\  $$$$$$\   $$$$$$$ | $$$$$$\  \_$$ | $$ /  $$ |
+  $$ |  $$$$$$$  |$$$$$$$  |$$  _____|$$  __$$\ $$  __$$ |$$  __$$\   $$ |  $$$$$$  |
+  $$ |  $$  ____/ $$  ____/ $$ /      $$ /  $$ |$$ /  $$ |$$$$$$$$ |  $$ | $$  __$$< 
+  $$ |  $$ |      $$ |      $$ |      $$ |  $$ |$$ |  $$ |$$   ____|  $$ | $$ /  $$ |
+$$$$$$\ $$ |      $$ |      \$$$$$$$\ \$$$$$$  |\$$$$$$$ |\$$$$$$$\ $$$$$$\\$$$$$$  |
+\______|\__|      \__|       \_______| \______/  \_______| \_______|\______|\______/ 
+                </pre>
+                <table class="center">
                     <thead>
                         <tr>
-                            <th rowspan="2">No.</th>
-                            <th rowspan="2">Source files (IPPcode18)</th>
-                            <th rowspan="2">Other files</th>
-                            <th colspan="4">Return code</th>
-                            <th rowspan="2">Result</th>
-                        </tr>
-                        <tr>
+                            <th>No.</th>
+                            <th>Source files</th>
                             <th>Parse</th>
                             <th>Interpret</th>
                             <th>Expected</th>
-                            <th>Passed</th>  
+                            <th>RC</th>
+                            <th>Result</th>
                         </tr>
-                    </thead>
-                    <tbody>';
+                    </thead>';
+//                    <tbody>';
 
         foreach ($this->DirectoryScanner->directories as $dir) {
+            $testDirCount = 0;
+            $testDirPassedCount = 0;
+            $testDirCodesPassedCount = 0;
+            $html = $html.'<tbody>';
+
             foreach ($this->DirectoryScanner->testFiles[$dir] as $test) {
-//                var_dump($test);
-//                exit();
+                $testDirCount++;
+
+                $rcFile = $dir.$test['name'].'.rc';
+                $srcFileName = $test['name'] . '.src';
+
                 $html = $html."<tr>";
                 // ROW number
                 $testCount++;
+//                $testCount = "";
                 $html = $html."<td class='center'>".$testCount."</td>\n";
                 // ROW src file
-//                var_dump($test);
-                continue;
-                $html = $html."<td>".$test['name'].".src</td>\n";
+                $html = $html."<td>".$srcFileName."</td>\n";
                 // ROW other files
-                $html = $html . "<td>" . $testResult['inFile'] . "</br>" . $testResult['outFile'] . "</br>" . $testResult['rcFile'] . "</td>\n";
+//                $html = $html . "<td>".$inFileName."</br>".$outFileName."</br>".$rcFileName."</td>\n";
                 // ROW return code
-                $html = $html . "<td class='center'>" . $testResult['parseReturnCode'] . "</td>\n";
-                $html = $html . "<td class='center'>" . $testResult['interpretReturnCode'] . "</td>\n";
-                $html = $html . "<td class='center'>" . file_get_contents($testResult['rcFile']) . "</td>\n";
+                $html = $html . "<td class='center'>" . $test['parseReturnCode'] . "</td>\n";
+                $html = $html . "<td class='center'>" . $test['interpretReturnCode'] . "</td>\n";
+                $html = $html . "<td class='center'>" . file_get_contents($rcFile) . "</td>\n";
                 // ROW return code ok/fail
-                if ((file_get_contents($testResult['rcFile']) == $testResult['interpretReturnCode']) || (($testResult['interpretReturnCode'] == "") && (file_get_contents($testResult['rcFile']) == $testResult['parseReturnCode']))) {
-                    $html = $html . "<td><div id='circle' class='passed'></div></td>\n";
+                if ((file_get_contents($rcFile) == $test['interpretReturnCode']) || (($test['interpretReturnCode'] == "") && (file_get_contents($rcFile) == $test['parseReturnCode']))) {
+                    $html = $html . "<td class='passed'>&#10004;</td>\n";
                     $testCodesPassedCount++;
+                    $testDirCodesPassedCount++;
                 } else
-                    $html = $html . "<td><div id='circle' class='failed'></div></td>";
+                    $html = $html . "<td class='failed'>&#10007;</td>";
                 // ROW ok/fail
-                if ($testResult['pass']) {
-                    $html = $html . "<td class='background-gray'><div id='circle' class='passed'></div></td>\n";
+                if ($test['pass']) {
+                    $html = $html . "<td class='passed'>&#10004;</td>\n";
                     $testPassedCount++;
+                    $testDirPassedCount++;
                 } else
-                    $html = $html . "<td class='background-gray'><div id='circle' class='failed'></div></td>";
+                    $html = $html . "<td class='failed'>&#10007;</td>";
                 $html = $html . "</tr>\n";
             }
+            $html = $html.'
+                <tr class="dir-heading">
+                    <td colspan="5" class="left">'.$dir.' &#8599;</td>
+                    <td class="center">'.$testDirCodesPassedCount.'/'.$testDirCount.'</td>
+                    <td class="center">'.$testDirPassedCount.'/'.$testDirCount.'</td>
+                </tr>
+            </tbody>';
         }
 
         $html = $html.
                     '<tr id="summary">
-                        <td colspan="3">Summary</td>
-                        <td colspan="3"></td>
+                        <td class="center" colspan="1">Summary</td>
+                        <td class="center" colspan="4"></td>
                         <td class="center">'.$testCodesPassedCount.'/'.$testCount.'</td>
                         <td class="center">'.$testPassedCount.'/'.$testCount.'</td>
                     </tr>
                 </tbody>
             </table>
                 <ul>
-                    <li>PASSED<div id=\'circle\' class=\'passed\'></div></li>
-                    <li>FAILED<div id=\'circle\' class=\'failed\'></div></li>
+                    <li class="passed">&#10004; PASSED</li>
+                    <li class="failed">&#10007; FAILED</li>
                 </ul>
             </div>
             <script></script>
             </body>
         </html>';
-//        echo $html;
+        echo $html;
 //        fprintf(STDOUT, $html."\n");
     }
 
