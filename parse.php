@@ -200,6 +200,8 @@ class Instruction {
         $line = $this->removeComments($line);
         $line = trim($line); // odstraneni bilych znaku z okraju
 //        echo $line."\n";
+//        echo "LINE:".$line;
+
         $items = explode(' ', $line);
 //        var_dump( $items);
 
@@ -459,21 +461,25 @@ class Instruction {
      */
     private function checkSymb($symb) {
         if (preg_match('/^(int|bool|string)@.*$/', $symb)) {
-            $symb = explode('@', $symb);
+            $symb = explode('@', $symb, 2);
             //var_dump($symb);
             if ($symb[0] == 'int') {
-                array_push($this->iArgs, [$symb[0] => $symb[1]]);
-                return true;
+                if ($symb[1] == "") // int nemuze byt prazdny
+                    return false;
+                else {
+                    array_push($this->iArgs, [$symb[0] => $symb[1]]);
+                    return true;
+                }
             }
             elseif ($symb[0] == 'bool') {
-                $symb[1] = strtolower($symb[1]);
-                if (preg_match('/^(true|false)$/', $symb[1])) { // TODO sensitive???
+                //$symb[1] = strtolower($symb[1]);
+                if (preg_match('/^(true|false)$/', $symb[1])) {
                     array_push($this->iArgs, [$symb[0] => $symb[1]]);
                     return true;
                 }
             }
             else { // 'string'
-                if (preg_match('/^.*$/', $symb[1])) { // TODO ????
+                if (preg_match('/^(\\\\[0-9]{3}|[^\\\\])*$/', $symb[1])) { // TODO ????
                     array_push($this->iArgs, [$symb[0] => $symb[1]]);
                     return true;
                 }
@@ -490,7 +496,7 @@ class Instruction {
      * @return  true/false
      */
     private function checkLabel($label) {
-        if (preg_match('/^(_|-|\$|&|\*|\w)[\d\w]*$/', $label)) { // TODO specialni znaky uprostred
+        if (preg_match('/^(_|-|\$|&|%|\*|[a-zA-Z])(_|-|\$|&|%|\*|[a-zA-Z0-9])*$/', $label)) { // TODO specialni znaky uprostred
             array_push($this->iArgs, ['label' => $label]);
             return true;
         }
@@ -516,7 +522,7 @@ class Instruction {
      * @return  true/false
      */
     private function checkVar($var) {
-        if (preg_match('/^(GF|LF|TF)@(_|-|\$|&|\*|\w)[\d\w]*$/', $var)) { // TODO specialni znaky uprostred
+        if (preg_match('/^(GF|LF|TF)@(_|-|\$|&|%|\*|[a-zA-Z])(_|-|\$|&|%|\*|[a-zA-Z0-9])*$/', $var)) { // TODO specialni znaky uprostred
             array_push($this->iArgs, ['var' => $var]);
             return true;
         }
