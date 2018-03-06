@@ -187,6 +187,11 @@ class Instruction {
             if ($line != "\n")
                 $this->stats->addInstruction(); // potencialni instrukce
         }
+        else if (($line == false) && ($this->called == 1)) {
+            //prazdny soubor
+            fprintf(STDERR, "Missing first line .IPPcode18!\n");
+            exit(21);
+        }
         else
             return false; // pokud neni co cist ze STDIN
 
@@ -485,7 +490,7 @@ class Instruction {
      * @return  true/false
      */
     private function checkLabel($label) {
-        if (preg_match('/^(_|-|\$|&|\*|\w)[\d\w]*$/', $label)) {
+        if (preg_match('/^(_|-|\$|&|\*|\w)[\d\w]*$/', $label)) { // TODO specialni znaky uprostred
             array_push($this->iArgs, ['label' => $label]);
             return true;
         }
@@ -511,7 +516,7 @@ class Instruction {
      * @return  true/false
      */
     private function checkVar($var) {
-        if (preg_match('/^(GF|LF|TF)@(_|-|\$|&|\*|\w)[\d\w]*$/', $var)) {
+        if (preg_match('/^(GF|LF|TF)@(_|-|\$|&|\*|\w)[\d\w]*$/', $var)) { // TODO specialni znaky uprostred
             array_push($this->iArgs, ['var' => $var]);
             return true;
         }
