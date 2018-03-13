@@ -201,7 +201,12 @@ class Arguments
         { // jeden az sest argumentu
             if (array_key_exists('help', $opts))
             {
-                fprintf(STDERR, "HELP TEXT TODO\n"); // TODO
+                fprintf(STDERR, "Skript (test.php v jazyce PHP 5.6) slouží pro automatické testování postupné aplikace parse.php a interpret.py. Skript projde zadaný adresář s testy a využije je pro automatické otestování správné funkčnosti obou předchozích programů včetně vygenerování přehledného souhrnu v HTML 5 do standardního výstupu.\n\nTento skript pracuje s těmito parametry:
+• --help viz společný parametr všech skriptů v sekci 2.2
+• --directory=path testy bude hledat v zadaném adresáři (chybí-li tento parametr, tak skript prochází aktuální adresář)
+• --recursive testy bude hledat nejen v zadaném adresáři, ale i rekurzivně ve všech jeho podadresářích
+• --parse-script=file soubor se skriptem v PHP 5.6 pro analýzu zdrojového kódu v IPP-code18 (chybí-li tento parametr, tak implicitní hodnotou je parse.php uložený v aktuálním adresáři)
+• --int-script=file soubor se skriptem v Python 3.6 pro interpret XML reprezentace kódu v IPPcode18 (chybí-li tento parametr, tak implicitní hodnotou je interpret.py uložený v aktuálním adresáři)\n");
                 exit(0);
             }
             if (array_key_exists('recursive', $opts))
