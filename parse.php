@@ -44,7 +44,7 @@ function checkArguments($stats) {
     }
     elseif ($argc == 2) { // jeden argument
         if (array_key_exists('help', $opts)) {
-            fprintf(STDERR,"HELP TEXT TODO\n");
+            fprintf(STDERR,"Skript typu filtr (parse.php v jazyce PHP 5.6) načte ze standardního vstupu zdrojový kód v IPPcode18, zkontroluje lexikální a syntaktickou správnost kódu a vypíše na standardní výstup XML reprezentaci programu dle specifikace v sekci 3.1.\n\nParametry: --help (vypíše nápovědu)\n\nChybové návratové kódy specifické pro analyzátor:\n• 21 - lexikální nebo syntaktická chyba zdrojového kódu zapsaného v IPPcode18\n");
             exit(0);
         }
         elseif (array_key_exists('stats', $opts)) {
