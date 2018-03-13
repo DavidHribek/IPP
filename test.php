@@ -206,6 +206,12 @@ class Arguments
 \t• --directory=path testy bude hledat v zadaném adresáři (chybí-li tento parametr, tak skript prochází aktuální adresář)
 \t• --recursive testy bude hledat nejen v zadaném adresáři, ale i rekurzivně ve všech jeho podadresářích
 \t• --parse-script=file soubor se skriptem v PHP 5.6 pro analýzu zdrojového kódu v IPP-code18 (chybí-li tento parametr, tak implicitní hodnotou je parse.php uložený v aktuálním adresáři)
+\t• --int-script=file soubor se skriptem v Python 3.6 pro interpret XML reprezentace kódu v IPPcode18 (chybí-li tento parametr, tak implicitní hodnotou je interpret.py uložený v aktuálním adresáři)\n
+Tento skript bude pracovat s těmito parametry:
+\t• --help viz společný parametr všech skriptů v sekci 2.2
+\t• --directory=path testy bude hledat v zadaném adresáři (chybí-li tento parametr, tak skript prochází aktuální adresář)
+\t• --recursive testy bude hledat nejen v zadaném adresáři, ale i rekurzivně ve všech jeho podadresářích
+\t• --parse-script=file soubor se skriptem v PHP 5.6 pro analýzu zdrojového kódu v IPPcode18 (chybí-li tento parametr, tak implicitní hodnotou je parse.php uložený v aktuálním adresáři)
 \t• --int-script=file soubor se skriptem v Python 3.6 pro interpret XML reprezentace kódu v IPPcode18 (chybí-li tento parametr, tak implicitní hodnotou je interpret.py uložený v aktuálním adresáři)\n");
                 exit(0);
             }
