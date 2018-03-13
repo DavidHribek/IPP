@@ -37,7 +37,7 @@ foreach ($DirectoryScanner->directories as $dir)
         {
             $TmpFile->writeExecOutput($parseOutput); // naplni tmp soubor vystupem z parseru
             unset($interpretOutput);
-            exec('python3.6 ' . $Arguments->intScript . ' --source=' . $TmpFile->getPath() . ' < ' . $inFile, $interpretOutput, $interpretReturnCode); // interpret.py < XML
+            exec('timeout 5 python3.6 ' . $Arguments->intScript . ' --source=' . $TmpFile->getPath() . ' < ' . $inFile, $interpretOutput, $interpretReturnCode); // interpret.py < XML (maximalni cas na test 5 sekund)
             $TmpFile->reset();
             $TmpFile->writeExecOutput($interpretOutput); // naplni tmp soubor vystupem z interpretu
 //            fprintf(STDERR, "INT OUTP: |" . $TmpFile->getAsString() . "|\n"); // DEBUG
