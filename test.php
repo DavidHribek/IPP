@@ -175,8 +175,8 @@ class Arguments
         $this->recursive = false;
 //        $this->directory = './';
         $this->directory = getcwd().'/'; // pwd
-        $this->parseScript = 'parse.php';
-        $this->intScript = 'interpret.py';
+        $this->parseScript = './parse.php';
+        $this->intScript = './interpret.py';
     }
 
     /*
@@ -195,6 +195,16 @@ class Arguments
 
         if ($argc == 1)
         { // zadny argument
+            if (!file_exists($this->parseScript))
+            { // kontrola existence souboru parse.php
+                fprintf(STDERR, "File does not exist: ".$this->parseScript."\n");
+                exit(10);
+            }
+            if (!file_exists($this->intScript))
+            { // kontrola existence souboru interpret.py
+                fprintf(STDERR, "File does not exist: ".$this->intScript."\n");
+                exit(10);
+            }
             return; // OK
         }
         else if ($argc >= 2 && $argc <= 6)
