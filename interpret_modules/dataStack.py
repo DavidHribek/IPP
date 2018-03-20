@@ -1,3 +1,8 @@
+# File:     dataStack.py
+# Author:   David Hříbek (xhribe02)
+# Date:     19.3.2018
+# Desc:     Interpret jazyka ippcode18
+#
 from interpret_modules.errorHandler import ErrorHandler
 
 class DataStack(ErrorHandler):
