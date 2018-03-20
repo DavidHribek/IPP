@@ -23,8 +23,8 @@ def Main():
         if curr_inst is None:
             # zajisteni ukonceni cyklu
             break
-        # interpretace jednotlivych instrukci
 
+        # interpretace jednotlivych instrukci
         # BREAK
         if curr_inst.opcode == 'BREAK':
             print_to_stderr('Pozice v kodu: {}'.format(instList.get_instruction_counter()))

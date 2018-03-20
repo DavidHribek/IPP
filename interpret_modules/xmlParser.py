@@ -8,7 +8,7 @@ import re
 from interpret_modules.instruction import Instruction
 from interpret_modules.errorHandler import ErrorHandler
 
-class XmlParser():
+class XmlParser(ErrorHandler):
     def __init__(self, source_file_path, instList):
         self.source_file_path = source_file_path
         self.instList = instList
@@ -23,19 +23,19 @@ class XmlParser():
             self.root = tree.getroot()
         except FileNotFoundError:
             # soubor neexistuje
-            self.exit_with_error(11, 'CHYBA: Soubor se nepodarilo otevrit')
-        except Exception:
+            self.exit_with_error(11, 'CHYBA: Soubor se nepodarilo otevrit ({})'.format(self.source_file_path))
+        except Exception as e:
             # spatna struktura XML (not well formated)
-            self.exit_with_error(31)
+            self.exit_with_error(31, 'CHYBA: XML neni dobre formatovany nebo nema ocekavanou strukturu (radek {}, sloupec {})'.format(e.position[0], e.position[1]))
 
         # Kontrola XML
         # ROOT ELEMENT: program
         if self.root.tag != 'program':
-            self.exit_with_error(31, 'CHYBA: Root element musi byt program')
+            self.exit_with_error(31, 'CHYBA: Root element musi byt <program>')
         # ROOT ELEMENT: povolene atributy
         for atr in self.root.attrib:
             if atr not in ['language', 'name', 'description']:
-                self.exit_with_error(31, 'CHYBA: Nepovolene atributy elementu program')
+                self.exit_with_error(31, 'CHYBA: Nepovolene atributy elementu <program>')
         # ROOT ELEMENT: atribut language
         if 'language' not in self.root.attrib:
             self.exit_with_error(31, 'CHYBA: Chybejici atribut language')
@@ -47,7 +47,7 @@ class XmlParser():
         for instruction in self.root:
             # INSTRUKCE: nazev elementu
             if instruction.tag != 'instruction':
-                self.exit_with_error(31, 'CHYBA: Spatny nazev elementu instrukce')
+                self.exit_with_error(31, 'CHYBA: Spatny nazev elementu instrukce ({}) ({}. instrukce XML souboru)'.format(instruction.tag, len(instruction_order_numbers)+1))
             # INSTRUKCE: atribut opcode
             if 'opcode' not in instruction.attrib:
                 self.exit_with_error(31, 'CHYBA: Chybejici atribut opcode v elementu instrukce')

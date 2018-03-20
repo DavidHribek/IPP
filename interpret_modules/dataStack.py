@@ -14,5 +14,5 @@ class DataStack(ErrorHandler):
             self.stack.pop()
             pass
         else:
-            self.exit_with_error(56, 'Chybejici hodnota na datovem zasobniku')
+            self.exit_with_error(56, 'CHYBA: Chybejici hodnota na datovem zasobniku')
 
