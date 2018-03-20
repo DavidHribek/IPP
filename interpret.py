@@ -6,16 +6,22 @@
 from interpret_modules.errorHandler import ErrorHandler
 from interpret_modules.xmlParser import XmlParser
 from interpret_modules.argChecker import ArgChecker
-
+from interpret_modules.instructionList import InstructionList
 
 def Main():
     errorHandler = ErrorHandler() # zajistuje chybove ukonceni programu
-    argChecker = ArgChecker(errorHandler) # kontroluje argumenty programu
-    argChecker.check()
-    xmlParser = XmlParser(argChecker.get_file_path(), errorHandler) # kontroluje vstupni XML
-    xmlParser.parse()
+    argChecker = ArgChecker(errorHandler)
+    argChecker.check() # kontrola argumentu programu
+    instList = InstructionList() # seznam instrukci k interpretaci
 
-    print('konec')
+    xmlParser = XmlParser(argChecker.get_file_path(), errorHandler, instList)
+    xmlParser.parse() # kontrola vstupniho XML
+
+    for x in instList:
+        try:
+            print(x.opcode, x.arg1)
+        except Exception:
+            pass
 
 
 
