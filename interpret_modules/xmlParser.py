@@ -21,7 +21,7 @@ class XmlParser():
             self.root = tree.getroot()
         except FileNotFoundError:
             # soubor neexistuje
-            self.errorHandler.exit_with_error(11)
+            self.errorHandler.exit_with_error(11, 'CHYBA: Soubor se nepodarilo otevrit')
         except Exception:
             # spatna struktura XML (not well formated)
             self.errorHandler.exit_with_error(31)
@@ -29,7 +29,7 @@ class XmlParser():
         # Kontrola XML
         # ROOT ELEMENT: program
         if self.root.tag != 'program':
-            self.errorHandler.exit_with_error(31)
+            self.errorHandler.exit_with_error(31, 'CHYBA: Root element musi byt program')
         # ROOT ELEMENT: povolene atributy
         for atr in self.root.attrib:
             if atr not in ['language', 'name', 'description']:
@@ -60,7 +60,7 @@ class XmlParser():
                 arg_order += 1
                 # ARGUMENT: nazev elementu
                 if argument.tag != 'arg'+str(arg_order):
-                    self.errorHandler.exit_with_error(31, 'CHYBA: Spatny nazev elemntu parametru instrukce')
+                    self.errorHandler.exit_with_error(31, 'CHYBA: Spatny nazev elementu parametru instrukce')
                 # ARGUMENT: atribut type
                 if 'type' not in argument.attrib:
                     self.errorHandler.exit_with_error(31, 'CHYBA: Chybejici atribut type v elementu parametru instrukce')
@@ -80,8 +80,8 @@ class XmlParser():
 
         for instruction in self.root:
             # prevod opcode na uppercase (neni case sensitive)
-            instruction.attrib['opcode'] = str(instruction.attrib['opcode']).upper()
-            print(instruction.attrib['opcode'])
+            # instruction.attrib['opcode'] = str(instruction.attrib['opcode']).upper()
+            # print(instruction.attrib['opcode']) # DEBUG
             # kontrola jednotlivych instrukci
             if instruction.attrib['opcode'] in ['CREATEFRAME', 'PUSHFRAME', 'POPFRAME', 'BREAK', 'RETURN']: # none
                 # pocet parametru
@@ -94,7 +94,7 @@ class XmlParser():
                 # pocet parametru
                 if argCount(instruction) == 1:
                     # lex, syntax
-
+                    self.checkVar(instruction[0])
                     pass
                 else:
                     self.errorHandler.exit_with_error(32, 'CHYBA: Nespravny pocet parametru instrukce ({})'.format(instruction.attrib['opcode']))
@@ -102,6 +102,7 @@ class XmlParser():
                 # pocet parametru
                 if argCount(instruction) == 1:
                     # lex, syntax
+                    self.checkSymb(instruction[0])
                     pass
                 else:
                     self.errorHandler.exit_with_error(32, 'CHYBA: Nespravny pocet parametru instrukce ({})'.format(instruction.attrib['opcode']))
@@ -109,6 +110,7 @@ class XmlParser():
                 # pocet parametru
                 if argCount(instruction) == 1:
                     # lex, syntax
+                    self.checkLabel(instruction[0])
                     pass
                 else:
                     self.errorHandler.exit_with_error(32, 'CHYBA: Nespravny pocet parametru instrukce ({})'.format(instruction.attrib['opcode']))
@@ -116,6 +118,8 @@ class XmlParser():
                 # pocet parametru
                 if argCount(instruction) == 2:
                     # lex, syntax
+                    self.checkVar(instruction[0])
+                    self.checkSymb(instruction[1])
                     pass
                 else:
                     self.errorHandler.exit_with_error(32, 'CHYBA: Nespravny pocet parametru instrukce ({})'.format(instruction.attrib['opcode']))
@@ -123,6 +127,9 @@ class XmlParser():
                 # pocet parametru
                 if argCount(instruction) == 3:
                     # lex, syntax
+                    self.checkVar(instruction[0])
+                    self.checkSymb(instruction[1])
+                    self.checkSymb(instruction[2])
                     pass
                 else:
                     self.errorHandler.exit_with_error(32, 'CHYBA: Nespravny pocet parametru instrukce ({})'.format(instruction.attrib['opcode']))
@@ -130,6 +137,8 @@ class XmlParser():
                 # pocet parametru
                 if argCount(instruction) == 2:
                     # lex, syntax
+                    self.checkVar(instruction[0])
+                    self.checkType(instruction[1])
                     pass
                 else:
                     self.errorHandler.exit_with_error(32, 'CHYBA: Nespravny pocet parametru instrukce ({})'.format(instruction.attrib['opcode']))
@@ -137,6 +146,9 @@ class XmlParser():
                 # pocet parametru
                 if argCount(instruction) == 3:
                     # lex, syntax
+                    self.checkLabel(instruction[0])
+                    self.checkSymb(instruction[1])
+                    self.checkSymb(instruction[2])
                     pass
                 else:
                     self.errorHandler.exit_with_error(32, 'CHYBA: Nespravny pocet parametru instrukce ({})'.format(instruction.attrib['opcode']))
@@ -144,16 +156,45 @@ class XmlParser():
                 # nepovolena instrukce
                 self.errorHandler.exit_with_error(32, 'CHYBA: Nepovoleny opcode instrukce ({})'.format(instruction.attrib['opcode']))
 
-    def checkLabel(self, label):
-        if re.match('/^(_|-|\$|&|%|\*|[a-zA-Z])(_|-|\$|&|%|\*|[a-zA-Z0-9])*$/', label):
-            pass
+    def checkLabel(self, arg):
+        """Kontrola validity navesti"""
+        if arg.attrib['type'] != 'label':
+            self.errorHandler.exit_with_error(32, 'CHYBA: Chybny atribut type u navesti ({})'.format(arg.attrib['type']))
+        if not re.match('^(_|-|\$|&|%|\*|[a-zA-Z])(_|-|\$|&|%|\*|[a-zA-Z0-9])*$', arg.text):
+            self.errorHandler.exit_with_error(32, 'CHYBA: Chybne navesti ({})'.format(arg.text))
+
+    def checkVar(self, arg):
+        """Kontrola validity promenne"""
+        if arg.attrib['type'] != 'var':
+            self.errorHandler.exit_with_error(32, 'CHYBA: Chybny atribut type u navesti ({})'.format(arg.attrib['type']))
+        if not re.match('^(GF|LF|TF)@(_|-|\$|&|%|\*|[a-zA-Z])(_|-|\$|&|%|\*|[a-zA-Z0-9])*$', arg.text):
+            self.errorHandler.exit_with_error(32, 'CHYBA: Chybny nazev promenne ({})'.format(arg.text))
+
+    def checkSymb(self, arg):
+        """Kontrola validity symbolu (konstanta/promenna)"""
+        if arg.attrib['type'] in ['int', 'bool', 'string']:
+            if arg.attrib['type'] == 'int':
+                # int
+                if not re.match('^([+-]?[1-9][0-9]*|[+-][0-9])$', arg.text):
+                    self.errorHandler.exit_with_error(32, 'CHYBA: Chybna hodnota int ({})'.format(arg.text))
+            elif arg.attrib['type'] == 'bool':
+                # bool
+                if not arg.text in ['true', 'false']:
+                    self.errorHandler.exit_with_error(32, 'CHYBA: Chybna hodnota bool ({})'.format(arg.text))
+            else:
+                # string
+                if not re.search('^(\\\\[0-9]{3}|[^\s\\\\#])*$', arg.text):
+                    self.errorHandler.exit_with_error(32, 'CHYBA: Chybna hodnota string ({})'.format(arg.text))
+        elif arg.attrib['type'] == 'var':
+            # var
+            self.checkVar(arg)
         else:
-            self.errorHandler.exit_with_error(32, 'CHYBA: Chybne navesti ({})'.format(label))
-    def checkVar(self):
-        pass
+            # <symb> musi byt int/bool/string/var
+            self.errorHandler.exit_with_error(32, 'CHYBA: Chybny atribut type u symbolu ({})'.format(arg.attrib['type']))
 
-    def checkSymb(self):
-        pass
-
-    def checkType(self):
-        pass
+    def checkType(self, arg):
+        """Kontrola validity type"""
+        if arg.attrib['type'] != 'type':
+            self.errorHandler.exit_with_error(32, 'CHYBA: Chybny atribut type u typu ({})'.format(arg.attrib['type']))
+        if not re.match('^(int|bool|string)$', arg.text):
+            self.errorHandler.exit_with_error(32, 'CHYBA: Chybny typ ({})'.format(arg.text))
