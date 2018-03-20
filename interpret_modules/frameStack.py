@@ -24,3 +24,15 @@ class FrameStack(ErrorHandler):
     def get_frame_stack(self):
         """Vrati cely zasobnik ramcu"""
         return self.stack
+
+    ####################################################
+    ## RAMEC NA VRCHOLU ZASOBNIKU SIMULUJE LOKALNI RAMEC
+    ####################################################
+
+    def get_local_frame(self):
+        if len(self.stack) > 0:
+            # v zasobniku se nachazi ramce, muzeme ziskat obsah lokalniho ramce
+            return self.stack[len(self.stack)-1]
+        else:
+            return 'NEDEFINOVAN'
+

@@ -32,10 +32,11 @@ def Main():
         # interpretace jednotlivych instrukci
         # BREAK
         if curr_inst.opcode == 'BREAK':
-            print_to_stderr('Pozice v kodu:              {}'.format(instList.get_instruction_counter()))
-            print_to_stderr('Pocet vykonanych instrukci: {}'.format(instList.get_instruction_done_number()))
-            print_to_stderr('Zasobnik ramcu: {} (Celkem: {})'.format(frameStack.get_frame_stack(), len(frameStack.get_frame_stack())))
-            print_to_stderr('TF: {}'.format(tmpFrame.get_frame()))
+            print_to_stderr('Pozice v kodu:                 {}'.format(instList.get_instruction_counter()))
+            print_to_stderr('Pocet vykonanych instrukci:    {}'.format(instList.get_instruction_done_number()))
+            print_to_stderr('Zasobnik ramcu:                {} (Celkem: {})'.format(frameStack.get_frame_stack(), len(frameStack.get_frame_stack())))
+            print_to_stderr('Docasny ramec (TF):            {}'.format(tmpFrame.get_frame()))
+            print_to_stderr('Lokalni ramec (LF):            {}'.format(frameStack.get_local_frame()))
         # PUSHS
         elif curr_inst.opcode == 'PUSHS':
             # TODO
