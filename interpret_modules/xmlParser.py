@@ -1,5 +1,10 @@
+# File:     xmlParser.py
+# Author:   David Hříbek (xhribe02)
+# Date:     19.3.2018
+# Desc:     Interpret jazyka ippcode18
+#
 import xml.etree.ElementTree as ET
-import collections
+import re
 
 class XmlParser():
     def __init__(self, source_file_path, errorHandler):
@@ -139,9 +144,11 @@ class XmlParser():
                 # nepovolena instrukce
                 self.errorHandler.exit_with_error(32, 'CHYBA: Nepovoleny opcode instrukce ({})'.format(instruction.attrib['opcode']))
 
-    def checkLabel(self):
-        pass
-
+    def checkLabel(self, label):
+        if re.match('/^(_|-|\$|&|%|\*|[a-zA-Z])(_|-|\$|&|%|\*|[a-zA-Z0-9])*$/', label):
+            pass
+        else:
+            self.errorHandler.exit_with_error(32, 'CHYBA: Chybne navesti ({})'.format(label))
     def checkVar(self):
         pass
 

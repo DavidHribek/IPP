@@ -1,3 +1,8 @@
+# File:     errorHandler.py
+# Author:   David Hříbek (xhribe02)
+# Date:     19.3.2018
+# Desc:     Interpret jazyka ippcode18
+#
 import sys
 class ErrorHandler():
     def __init__(self):
