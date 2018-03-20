@@ -4,6 +4,11 @@
 # Desc:     Interpret jazyka ippcode18
 #
 import sys
+
+def print_to_stderr(msg, *args):
+    """Vypise zpravu na stderr"""
+    print(msg, file=sys.stderr)
+
 class ErrorHandler():
     def __init__(self):
         self.erros = {

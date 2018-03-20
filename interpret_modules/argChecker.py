@@ -5,10 +5,10 @@
 #
 import getopt
 import sys
+from interpret_modules.errorHandler import ErrorHandler
 
-class ArgChecker():
-    def __init__(self, errorHandler):
-        self.errorHandler = errorHandler
+class ArgChecker(ErrorHandler):
+    def __init__(self):
         self.source = ''
 
     def get_file_path(self):
@@ -20,10 +20,10 @@ class ArgChecker():
             opts, args = getopt.getopt(sys.argv[1:], "", ['help', 'source='])
         except getopt.GetoptError as error:
             # nepovolena kombinace argumentu
-            self.errorHandler.exit_with_error(10)
+            self.exit_with_error(10)
         # pocet argumentu musi byt 1
         if len(opts) != 1:
-            self.errorHandler.exit_with_error(10)
+            self.exit_with_error(10)
         # vyhodnoceni argumentu
         opts = opts[0]
         o, v = opts
@@ -33,7 +33,7 @@ class ArgChecker():
             self.source = v
         else:
             # Zde se program pravdepodobne nedostane
-            self.errorHandler.exit_with_error(10)
+            self.exit_with_error(10)
 
 
 
