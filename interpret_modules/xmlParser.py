@@ -26,7 +26,7 @@ class XmlParser(ErrorHandler):
             self.exit_with_error(11, 'CHYBA: Soubor se nepodarilo otevrit ({})'.format(self.source_file_path))
         except Exception as e:
             # spatna struktura XML (not well formated)
-            self.exit_with_error(31, 'CHYBA: XML neni dobre formatovany nebo nema ocekavanou strukturu (radek {}, sloupec {})'.format(e.position[0], e.position[1]))
+            self.exit_with_error(31, 'CHYBA: XML soubor neni dobre formatovany nebo nema ocekavanou strukturu (radek {}, sloupec {})'.format(e.position[0], e.position[1]))
 
         # Kontrola XML
         # ROOT ELEMENT: program
@@ -47,7 +47,7 @@ class XmlParser(ErrorHandler):
         for instruction in self.root:
             # INSTRUKCE: nazev elementu
             if instruction.tag != 'instruction':
-                self.exit_with_error(31, 'CHYBA: Spatny nazev elementu instrukce ({}) ({}. instrukce XML souboru)'.format(instruction.tag, len(instruction_order_numbers)+1))
+                self.exit_with_error(31, 'CHYBA: Nespravny nazev elementu instrukce ({}) ({}. instrukce XML souboru)'.format(instruction.tag, len(instruction_order_numbers)+1))
             # INSTRUKCE: atribut opcode
             if 'opcode' not in instruction.attrib:
                 self.exit_with_error(31, 'CHYBA: Chybejici atribut opcode v elementu instrukce')
@@ -62,7 +62,7 @@ class XmlParser(ErrorHandler):
                 arg_order += 1
                 # ARGUMENT: nazev elementu
                 if argument.tag != 'arg'+str(arg_order):
-                    self.exit_with_error(31, 'CHYBA: Spatny nazev elementu parametru instrukce')
+                    self.exit_with_error(31, 'CHYBA: Nespravny nazev elementu parametru instrukce')
                 # ARGUMENT: atribut type
                 if 'type' not in argument.attrib:
                     self.exit_with_error(31, 'CHYBA: Chybejici atribut type v elementu parametru instrukce')
