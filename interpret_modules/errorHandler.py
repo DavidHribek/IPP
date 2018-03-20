@@ -11,7 +11,12 @@ class ErrorHandler():
             32: 'Chyba lexikální nebo syntaktické analýzy textových elementů a atributů ve vstupním XML souboru (např. chybný lexém pro řetězcový literál, neznámý operační kód apod.).'
         }
 
-    def exit_with_error(self, error_number):
+    def exit_with_error(self, error_number, msg=None):
         """Vypise chybovou hlasku a ukonci skript"""
-        print(self.erros[error_number], file=sys.stderr)
+        if msg:
+            # explicitni chybova zprava
+            print(msg, file=sys.stderr)
+        else:
+            # vychozi chybova zprava
+            print(self.erros[error_number], file=sys.stderr)
         exit(error_number)
