@@ -8,6 +8,8 @@ from interpret_modules.xmlParser import XmlParser
 from interpret_modules.argChecker import ArgChecker
 from interpret_modules.instructionList import InstructionList
 from interpret_modules.dataStack import DataStack
+from interpret_modules.frameHandler import FrameHandler
+
 from interpret_modules.frameStack import FrameStack
 from interpret_modules.temporaryFrame import TemporaryFrame
 
@@ -19,9 +21,11 @@ def Main():
     xmlParser = XmlParser(argChecker.get_file_path(), instList)
     xmlParser.parse()                                   # kontrola vstupniho XML; nahrani instrukci do instList
     dataStack = DataStack()                             # datovy zasobnik
-    frameStack = FrameStack()                           # zasobnik ramcu
-    tmpFrame = TemporaryFrame(frameStack)               # docasny ramec (temporary frame)
-    frameStack.set_temporary_frame(tmpFrame)            # predani TF do zasobniku ramcu (pro pozdejsi komunikaci)
+    frameHandler = FrameHandler()                       # stara se o GF, LF, TF
+
+    # frameStack = FrameStack()                           # zasobnik ramcu
+    # tmpFrame = TemporaryFrame(frameStack)               # docasny ramec (temporary frame)
+    # frameStack.set_temporary_frame(tmpFrame)            # predani TF do zasobniku ramcu (pro pozdejsi komunikaci)
 
     while True:
         curr_inst = instList.get_next_instruction() # nacteni dalsi instrukce
@@ -34,9 +38,15 @@ def Main():
         if curr_inst.opcode == 'BREAK':
             print_to_stderr('Pozice v kodu:                 {}'.format(instList.get_instruction_counter()))
             print_to_stderr('Pocet vykonanych instrukci:    {}'.format(instList.get_instruction_done_number()))
-            print_to_stderr('Zasobnik ramcu:                {} (Celkem: {})'.format(frameStack.get_frame_stack(), len(frameStack.get_frame_stack())))
-            print_to_stderr('Docasny ramec (TF):            {}'.format(tmpFrame.get_frame()))
-            print_to_stderr('Lokalni ramec (LF):            {}'.format(frameStack.get_local_frame()))
+            print_to_stderr('Zasobnik ramcu:                {} (Celkem: {})'.format(frameHandler.get_frame_stack(), len(frameHandler.get_frame_stack())))
+            if frameHandler.get_tmp_frame() == 'NEDEFINOVAN':
+                print_to_stderr('Docasny ramec (TF):            {}'.format(frameHandler.get_tmp_frame()))
+            else:
+                print_to_stderr('Docasny ramec (TF):            {} (Celkem: {})'.format(frameHandler.get_tmp_frame(), len(frameHandler.get_tmp_frame())))
+            if frameHandler.get_local_frame() == 'NEDEFINOVAN':
+                print_to_stderr('Lokalni ramec (LF):            {}'.format(frameHandler.get_local_frame()))
+            else:
+                print_to_stderr('Lokalni ramec (LF):            {} (Celkem: {})'.format(frameHandler.get_local_frame(), len(frameHandler.get_local_frame())))
         # PUSHS
         elif curr_inst.opcode == 'PUSHS':
             # TODO
@@ -48,12 +58,13 @@ def Main():
             print(len(dataStack.stack))
         # CREATEFRAME
         elif curr_inst.opcode == 'CREATEFRAME':
-            tmpFrame.create_new_frame()
+            frameHandler.create_tmp_frame()
         # PUSHFRAME
         elif curr_inst.opcode == 'PUSHFRAME':
-            tmpFrame.push_frame_to_frame_stack()
+            frameHandler.push_tmp_frame_to_frame_stack()
+        # POPFRAME
         elif curr_inst.opcode == 'POPFRAME':
-            frameStack.pop_frame_to_temporary_frame()
+            frameHandler.pop_frame_stack_to_temporary_frame()
 
 
 
