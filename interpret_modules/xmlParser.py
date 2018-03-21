@@ -192,7 +192,7 @@ class XmlParser(ErrorHandler):
         if arg.attrib['type'] in ['int', 'bool', 'string']:
             if arg.attrib['type'] == 'int':
                 # int
-                if arg.text is None or not re.match('^([+-]?[1-9][0-9]*|[+-][0-9])$', arg.text):
+                if arg.text is None or not re.match('^([+-]?[1-9][0-9]*|[+-]?[0-9])$', arg.text):
                     self.exit_with_error(32, 'CHYBA: Chybna hodnota int ({})'.format(arg.text))
             elif arg.attrib['type'] == 'bool':
                 # bool

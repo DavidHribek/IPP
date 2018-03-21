@@ -84,6 +84,30 @@ def Main():
         elif curr_inst.opcode == 'MOVE':
             type, value = frameHandler.get_arg_type_and_value(curr_inst.arg2)
             frameHandler.set_var(curr_inst.arg1, type, value)
+        # ADD, SUB, MUL, IDIV
+        elif curr_inst.opcode in ['ADD', 'SUB', 'MUL', 'IDIV']:
+            type1, value1 = frameHandler.get_arg_type_and_value(curr_inst.arg2)
+            type2, value2 = frameHandler.get_arg_type_and_value(curr_inst.arg3)
+            if type1 == type2 == 'int':
+                if curr_inst.opcode == 'ADD':
+                    # secteni
+                    frameHandler.set_var(curr_inst.arg1, 'int', str(int(value1)+int(value2)))
+                elif curr_inst.opcode == 'SUB':
+                    # odecteni
+                    frameHandler.set_var(curr_inst.arg1, 'int', str(int(value1) - int(value2)))
+                elif curr_inst == 'MUL':
+                    # vynasobeni
+                    frameHandler.set_var(curr_inst.arg1, 'int', str(int(value1) * int(value2)))
+                else:
+                    # celociselne deleni
+                    if int(value2) == 0:
+                        # deleni nulou
+                        errorHandler.exit_with_error(57, 'CHYBA: Deleni nulou (Cislo1: {}, Cislo2: {})'.format(value1, value2))
+                    else:
+                        frameHandler.set_var(curr_inst.arg1, 'int', str(int(value1) // int(value2)))
+            else:
+                errorHandler.exit_with_error(53, 'CHYBA: Spatne typy operandu instrukce ADD (Typ1: {}, Typ2: {})'.format(type1, type2))
+
 
 
 
