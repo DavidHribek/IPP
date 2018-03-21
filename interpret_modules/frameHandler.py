@@ -63,17 +63,17 @@ class FrameHandler(ErrorHandler):
 
 
 
-    def parse_var_frame_and_name(self, var):
+    def parse_arg_variable_frame_and_name(self, i_arg_variable):
         """Vrati ramec a nazev promenne zvlast"""
-        return var['text'].split('@', 1)
+        return i_arg_variable['text'].split('@', 1)
 
-    def get_symb_type_and_value(self, symb):
-        if symb['type'] in ['int', 'bool', 'string']:
+    def get_arg_type_and_value(self, i_arg):
+        if i_arg['type'] in ['int', 'bool', 'string']:
             # vrati typ literalu + hodnotu
-            return (symb['type'], symb['text'])
+            return (i_arg['type'], i_arg['text'])
         else:
             # symb je promenna
-            frame, name = self.parse_var_frame_and_name(symb)
+            frame, name = self.parse_arg_variable_frame_and_name(i_arg)
             frame_to_search = self.get_frame(frame)
             if frame_to_search == 'NEDEFINOVAN':
                 self.exit_with_error(55, 'CHYBA: Pokus o cteni promenne z nedefinovaneho ramce (Ramec: {}, Promenna: {}'.format(frame, name))
@@ -84,11 +84,25 @@ class FrameHandler(ErrorHandler):
                 value = frame_to_search[name]['value']
                 return (type, value)
 
+    def set_var(self, i_arg_variable, type, value):
+        frame, name = self.parse_arg_variable_frame_and_name(i_arg_variable)
+        frame_to_search = self.get_frame(frame)
+        if frame_to_search == 'NEDEFINOVAN':
+            self.exit_with_error(55, 'CHYBA: Pokus o zapis do promenne na nedefinovanem ramci (Ramec {}, Nazev: {})'.format(frame, name))
+        elif name not in frame_to_search:
+            self.exit_with_error(54, 'CHYBA: Pokus o zapis do neexistujici promenne (Ramec: {}, Nazev: {})'.format(frame, name))
+        else:
+            # promenna existuje, muzeme do ni zapsat hodnotu
+            frame_to_search[name]['type'] = type
+            frame_to_search[name]['value'] = value
+
+
+
     # INSTRUKCE
 
     # DEFVAR
-    def defvar(self, arg1):
-        frame, name = self.parse_var_frame_and_name(arg1)
+    def defvar(self, i_arg):
+        frame, name = self.parse_arg_variable_frame_and_name(i_arg)
         frame_to_insert = self.get_frame(frame)
         if frame_to_insert == 'NEDEFINOVAN':
             # nedefinovany ramec
