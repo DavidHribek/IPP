@@ -23,11 +23,6 @@ def Main():
     dataStack = DataStack()                             # datovy zasobnik
     frameHandler = FrameHandler()                       # stara se o GF, LF, TF
 
-
-    # frameStack = FrameStack()                           # zasobnik ramcu
-    # tmpFrame = TemporaryFrame(frameStack)               # docasny ramec (temporary frame)
-    # frameStack.set_temporary_frame(tmpFrame)            # predani TF do zasobniku ramcu (pro pozdejsi komunikaci)
-
     while True:
         curr_inst = instList.get_next_instruction() # nacteni dalsi instrukce
         if curr_inst is None:
