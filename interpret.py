@@ -55,13 +55,12 @@ def Main():
 
         # PUSHS
         elif curr_inst.opcode == 'PUSHS':
-            # TODO
-            dataStack.pushValue('ahoj')
+            type, value = frameHandler.get_arg_type_and_value(curr_inst.arg1)
+            dataStack.pushValue(type, value)
         # POPS
         elif curr_inst.opcode == 'POPS':
-            # TODO
-            dataStack.popValue()
-            print(len(dataStack.stack))
+            type, value = dataStack.popValue()
+            frameHandler.set_var(curr_inst.arg1, type, value)
         # CREATEFRAME
         elif curr_inst.opcode == 'CREATEFRAME':
             frameHandler.create_tmp_frame()

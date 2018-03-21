@@ -85,6 +85,7 @@ class FrameHandler(ErrorHandler):
                 return (type, value)
 
     def set_var(self, i_arg_variable, type, value):
+        """Vlozi novou hodnotu do promenne i_arg_variable"""
         frame, name = self.parse_arg_variable_frame_and_name(i_arg_variable)
         frame_to_search = self.get_frame(frame)
         if frame_to_search == 'NEDEFINOVAN':

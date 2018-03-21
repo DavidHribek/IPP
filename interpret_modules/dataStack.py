@@ -9,15 +9,13 @@ class DataStack(ErrorHandler):
     def __init__(self):
         self.stack = []
 
-    def pushValue(self, value):
+    def pushValue(self, type, value):
         """Vlozi hodnotu na vrchol datoveho zasobniku"""
-        self.stack.append(value)
+        self.stack.append((type, value))
 
     def popValue(self):
         if len(self.stack) > 0:
-            # TODO
-            self.stack.pop()
-            pass
+            return self.stack.pop()
         else:
             self.exit_with_error(56, 'CHYBA: Chybejici hodnota na datovem zasobniku')
 
