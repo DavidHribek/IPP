@@ -9,11 +9,15 @@ from interpret_modules.argChecker import ArgChecker
 from interpret_modules.instructionList import InstructionList
 from interpret_modules.dataStack import DataStack
 from interpret_modules.frameHandler import FrameHandler
+from interpret_modules.errorHandler import ErrorHandler
 
 from interpret_modules.frameStack import FrameStack
 from interpret_modules.temporaryFrame import TemporaryFrame
 
+
+
 def Main():
+    errorHandler = ErrorHandler()                       # spravuje chybove stavy
     argChecker = ArgChecker()
     argChecker.check()                                  # kontrola argumentu programu
 
@@ -22,6 +26,7 @@ def Main():
     xmlParser.parse()                                   # kontrola vstupniho XML; nahrani instrukci do instList
     dataStack = DataStack()                             # datovy zasobnik
     frameHandler = FrameHandler()                       # stara se o GF, LF, TF
+
 
     # frameStack = FrameStack()                           # zasobnik ramcu
     # tmpFrame = TemporaryFrame(frameStack)               # docasny ramec (temporary frame)
@@ -73,7 +78,13 @@ def Main():
         # DEFVAR
         elif curr_inst.opcode == 'DEFVAR':
             frameHandler.defvar(curr_inst.arg1)
-
+        # WRITE
+        elif curr_inst.opcode == 'WRITE':
+            type, value = frameHandler.get_symb_type_and_value(curr_inst.arg1)
+            if value is None:
+                # promenna nebyla inicializovana
+                errorHandler.exit_with_error(56, 'CHYBA: Pokus o cteni neinicializovane promenne ({})'.format(curr_inst.arg1['text']))
+            print(bytes(value, 'utf-8').decode('unicode_escape'))
 
 
 

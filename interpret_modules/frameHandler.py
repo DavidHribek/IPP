@@ -15,6 +15,7 @@ class FrameHandler(ErrorHandler):
         # GLOBALNI RAMEC
         self.global_frame = {}
 
+    # PRACE S RAMCI
 
     def create_tmp_frame(self):
         """Inicializuje novy docasny ramec"""
@@ -39,34 +40,9 @@ class FrameHandler(ErrorHandler):
         else:
             self.exit_with_error(55, 'CHYBA: Pokus o presun ramce z prazdneho zasobniku ramcu')
 
-
-
     def get_frame_stack(self):
         """Vrati cely zasobnik ramcu"""
         return self.frame_stack
-
-    # def get_tmp_frame(self):
-    #     """Vrati obsah TF"""
-    #     if self.undefined == True:
-    #         # TF je nedefinovan
-    #         return 'NEDEFINOVAN'
-    #     else:
-    #         return self.tmp_frame
-
-    ####################################################
-    ## RAMEC NA VRCHOLU ZASOBNIKU SIMULUJE LOKALNI RAMEC
-    ####################################################
-
-    # def get_local_frame(self):
-    #     if len(self.frame_stack) > 0:
-    #         # v zasobniku se nachazi ramce, muzeme ziskat obsah lokalniho ramce
-    #         return self.frame_stack[len(self.frame_stack)-1]
-    #     else:
-    #         return 'NEDEFINOVAN'
-
-    ####################################################
-    ##                  GLOBALNI RAMEC
-    ####################################################
 
     def get_frame(self, frame):
         """Vrati pozadovany ramec nebo NEDEFINOVAN"""
@@ -86,8 +62,33 @@ class FrameHandler(ErrorHandler):
                 return self.tmp_frame
 
 
+
+    def parse_var_frame_and_name(self, var):
+        """Vrati ramec a nazev promenne zvlast"""
+        return var['text'].split('@', 1)
+
+    def get_symb_type_and_value(self, symb):
+        if symb['type'] in ['int', 'bool', 'string']:
+            # vrati typ literalu + hodnotu
+            return (symb['type'], symb['text'])
+        else:
+            # symb je promenna
+            frame, name = self.parse_var_frame_and_name(symb)
+            frame_to_search = self.get_frame(frame)
+            if frame_to_search == 'NEDEFINOVAN':
+                self.exit_with_error(55, 'CHYBA: Pokus o cteni promenne z nedefinovaneho ramce (Ramec: {}, Promenna: {}'.format(frame, name))
+            elif name not in frame_to_search:
+                self.exit_with_error(54, 'CHYBA: Pokus o cteni neexistujici promenne (Ramec: {}, Promenna: {}'.format(frame, name))
+            else:
+                type = frame_to_search[name]['type']
+                value = frame_to_search[name]['value']
+                return (type, value)
+
+    # INSTRUKCE
+
+    # DEFVAR
     def defvar(self, arg1):
-        frame, name = arg1['name'].split('@', 1)
+        frame, name = self.parse_var_frame_and_name(arg1)
         frame_to_insert = self.get_frame(frame)
         if frame_to_insert == 'NEDEFINOVAN':
             # nedefinovany ramec
@@ -100,3 +101,4 @@ class FrameHandler(ErrorHandler):
             else:
                 # promenna neexistuje, muzeme ji vlozit
                 frame_to_insert[name] = {'value': None, 'type': None}
+
