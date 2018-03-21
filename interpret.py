@@ -36,17 +36,22 @@ def Main():
         # interpretace jednotlivych instrukci
         # BREAK
         if curr_inst.opcode == 'BREAK':
-            print_to_stderr('Pozice v kodu:                 {}'.format(instList.get_instruction_counter()))
-            print_to_stderr('Pocet vykonanych instrukci:    {}'.format(instList.get_instruction_done_number()))
-            print_to_stderr('Zasobnik ramcu:                {} (Celkem: {})'.format(frameHandler.get_frame_stack(), len(frameHandler.get_frame_stack())))
-            if frameHandler.get_tmp_frame() == 'NEDEFINOVAN':
-                print_to_stderr('Docasny ramec (TF):            {}'.format(frameHandler.get_tmp_frame()))
+            print_to_stderr('Pozice v kodu:                  {}'.format(instList.get_instruction_counter()))
+            print_to_stderr('Pocet vykonanych instrukci:     {}'.format(instList.get_instruction_done_number()))
+            print_to_stderr('Zasobnik ramcu:                 {} (Celkem: {})'.format(frameHandler.get_frame_stack(), len(frameHandler.get_frame_stack())))
+            # LOKALNI RAMEC
+            if frameHandler.get_frame('LF') == 'NEDEFINOVAN':
+                print_to_stderr('Lokalni ramec (LF):             {}'.format(frameHandler.get_frame('LF')))
             else:
-                print_to_stderr('Docasny ramec (TF):            {} (Celkem: {})'.format(frameHandler.get_tmp_frame(), len(frameHandler.get_tmp_frame())))
-            if frameHandler.get_local_frame() == 'NEDEFINOVAN':
-                print_to_stderr('Lokalni ramec (LF):            {}'.format(frameHandler.get_local_frame()))
+                print_to_stderr('Lokalni ramec (LF):             {} (Celkem: {})'.format(frameHandler.get_frame('LF'), len(frameHandler.get_frame('LF'))))
+            # DOCASNY RAMEC
+            if frameHandler.get_frame('TF') == 'NEDEFINOVAN':
+                print_to_stderr('Docasny ramec (TF):             {}'.format(frameHandler.get_frame('TF')))
             else:
-                print_to_stderr('Lokalni ramec (LF):            {} (Celkem: {})'.format(frameHandler.get_local_frame(), len(frameHandler.get_local_frame())))
+                print_to_stderr('Docasny ramec (TF):             {} (Celkem: {})'.format(frameHandler.get_frame('TF'), len(frameHandler.get_frame('TF'))))
+            # GLOBALNI RAMEC
+            print_to_stderr('Globalni ramec (GF):            {} (Celkem: {})'.format(frameHandler.get_frame('GF'), len(frameHandler.get_frame('GF'))))
+
         # PUSHS
         elif curr_inst.opcode == 'PUSHS':
             # TODO
@@ -65,6 +70,9 @@ def Main():
         # POPFRAME
         elif curr_inst.opcode == 'POPFRAME':
             frameHandler.pop_frame_stack_to_temporary_frame()
+        # DEFVAR
+        elif curr_inst.opcode == 'DEFVAR':
+            frameHandler.defvar(curr_inst.arg1)
 
 
 
