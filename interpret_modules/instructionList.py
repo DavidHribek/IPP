@@ -5,23 +5,22 @@
 #
 class InstructionList(dict):
     def __init__(self):
-        self.instructions = {}
-        self.inst_in_file = 0                # pocet instrukci v souboru
+        self.instructions = {}               # slovnik instrukci (klicem instrukce je pozice v kodu)
+        self.instructions_in_file = 0                # pocet instrukci v souboru
         self.instruction_counter = 1         # interni citac instrukci
         self.instruction_done_number = 0     # pocet vykonanych instrukci
 
     def insertInst(self, instruction):
         """Vlozi instrukci na instrukcni pasku"""
-        self.inst_in_file += 1
-        self.instructions[self.inst_in_file] = instruction
+        self.instructions_in_file += 1
+        self.instructions[self.instructions_in_file] = instruction
 
     def get_next_instruction(self):
         """Vrati dalsi instrukci v poradi (tim ji povazuje za provedenou)"""
-        if self.instruction_counter <= self.inst_in_file:
-            # zaznamenani vykonane instrukce
-            self.instruction_done_number += 1
-            # vrati dalsi instrukce
-            self.instruction_counter += 1  # zvyseni pozice aktualni pozice o 1
+        if self.instruction_counter <= self.instructions_in_file:
+            # pokud je na instrukcni pasce dalsi instrukce
+            self.instruction_done_number += 1 # zaznamenani dalsi vykonane instrukce
+            self.instruction_counter += 1  # zvyseni instrukcniho citace o 1
             return self.instructions[self.instruction_counter-1]
         else:
             return None
@@ -38,6 +37,6 @@ class InstructionList(dict):
         """Vrati pocet vykonanych instrukci"""
         return self.instruction_done_number - 1
 
-    def __iter__(self):
-        for x in self.instructions.values():
-            yield x
+    # def __iter__(self):
+    #     for x in self.instructions.values():
+    #         yield x
