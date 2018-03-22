@@ -142,7 +142,15 @@ def Main():
             else:
                 # nepovolene typy operandu
                 errorHandler.exit_with_error(53, 'CHYBA: Spatne typy operandu instrukce {} (Typ1: {}, Typ2: {})'.format(curr_inst.opcode, type1, type2))
-
+        # NOT
+        if curr_inst.opcode == 'NOT':
+            type, value = frameHandler.get_arg_type_and_value(curr_inst.arg2)
+            if type == 'bool':
+                # logicka negace
+                log_not = 'true' if value == 'false' else 'false'
+                frameHandler.set_var(curr_inst.arg1, 'bool', log_not)
+            else:
+                errorHandler.exit_with_error(53, 'CHYBA: Spatny typ operandu instrukce NOT (Typ: {})'.format(type))
 
 
 
