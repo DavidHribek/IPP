@@ -126,6 +126,22 @@ def Main():
             else:
                 # nepovolene typy operandu
                 errorHandler.exit_with_error(53, 'CHYBA: Spatne typy operandu instrukce CONCAT (Typ1: {}, Typ2: {})'.format(type1, type2))
+        # AND, OR
+        elif curr_inst.opcode in ['AND', 'OR']:
+            type1, value1 = frameHandler.get_arg_type_and_value(curr_inst.arg2)
+            type2, value2 = frameHandler.get_arg_type_and_value(curr_inst.arg3)
+            if type1 == type2 == 'bool':
+                if curr_inst.opcode == 'AND':
+                    # logicky soucin
+                    log_and = 'true' if value1 == value2 == 'true' else 'false'
+                    frameHandler.set_var(curr_inst.arg1, 'bool', log_and)
+                else:
+                    # logicky soucet
+                    log_and = 'true' if 'true' in [value1, value2] else 'false'
+                    frameHandler.set_var(curr_inst.arg1, 'bool', log_and)
+            else:
+                # nepovolene typy operandu
+                errorHandler.exit_with_error(53, 'CHYBA: Spatne typy operandu instrukce {} (Typ1: {}, Typ2: {})'.format(curr_inst.opcode, type1, type2))
 
 
 
