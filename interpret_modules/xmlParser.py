@@ -200,7 +200,10 @@ class XmlParser(ErrorHandler):
                     self.exit_with_error(32, 'CHYBA: Chybna hodnota bool ({})'.format(arg.text))
             else:
                 # string
-                if arg.text is None or not re.search('^(\\\\[0-9]{3}|[^\s\\\\#])*$', arg.text):
+                if arg.text is None:
+                    # string muze byt prazdny retezec
+                    arg.text = ''
+                elif not re.search('^(\\\\[0-9]{3}|[^\s\\\\#])*$', arg.text):
                     self.exit_with_error(32, 'CHYBA: Chybna hodnota string ({})'.format(arg.text))
         elif arg.attrib['type'] == 'var':
             # var
