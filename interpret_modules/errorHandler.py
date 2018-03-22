@@ -11,6 +11,7 @@ def print_to_stderr(msg):
 
 class ErrorHandler():
     erros = {
+        # Vychozi chybove hlasky
         10: 'Chybějící parametr skriptu (je-li třeba) nebo použití zakázané kombinace parametrů',
         11: 'Chyba při otevírání vstupních souborů (např. neexistence, nedostatečné oprávnění)',
         12: 'Chyba při otevření výstupních souborů pro zápis (např. nedostatečné oprávnění)',

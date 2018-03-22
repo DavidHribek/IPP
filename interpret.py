@@ -108,7 +108,14 @@ def Main():
                         frameHandler.set_var(curr_inst.arg1, 'int', str(int(value1) // int(value2)))
             else:
                 errorHandler.exit_with_error(53, 'CHYBA: Spatne typy operandu instrukce ADD (Typ1: {}, Typ2: {})'.format(type1, type2))
-
+        # TYPE
+        elif curr_inst.opcode == 'TYPE':
+            type, value = frameHandler.get_arg_type_and_value(curr_inst.arg2)
+            if type is None:
+                # pokud se jedna o neinicializovanou promennou, prepsat type na prazdny string
+                type = ''
+            # zapis typu arg2 do promenne arg1 jako string
+            frameHandler.set_var(curr_inst.arg1, 'string', type)
 
 
 
