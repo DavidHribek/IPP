@@ -34,6 +34,7 @@ def Main():
         if curr_inst.opcode == 'BREAK':
             print_to_stderr('Pozice v kodu:                  {}'.format(instList.get_instruction_counter()))
             print_to_stderr('Pocet vykonanych instrukci:     {}'.format(instList.get_instruction_done_number()))
+            print_to_stderr('Datovy zasobnik:                {} (Celkem: {})'.format(dataStack.get_stack(), len(dataStack.get_stack())))
             print_to_stderr('Zasobnik ramcu:                 {} (Celkem: {})'.format(frameHandler.get_frame_stack(), len(frameHandler.get_frame_stack())))
             # LOKALNI RAMEC
             if frameHandler.get_frame('LF') == 'NEDEFINOVAN':

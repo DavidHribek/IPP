@@ -19,3 +19,7 @@ class DataStack(ErrorHandler):
         else:
             self.exit_with_error(56, 'CHYBA: Chybejici hodnota na datovem zasobniku')
 
+    def get_stack(self):
+        """Vrati cely datovy zasobnik (pro BREAK)"""
+        return self.stack
+
