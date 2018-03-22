@@ -76,9 +76,9 @@ class FrameHandler(ErrorHandler):
             frame, name = self.parse_arg_variable_frame_and_name(i_arg)
             frame_to_search = self.get_frame(frame)
             if frame_to_search == 'NEDEFINOVAN':
-                self.exit_with_error(55, 'CHYBA: Pokus o cteni promenne z nedefinovaneho ramce (Ramec: {}, Promenna: {}'.format(frame, name))
+                self.exit_with_error(55, 'CHYBA: Pokus o cteni promenne z nedefinovaneho ramce (Ramec: {}, Promenna: {})'.format(frame, name))
             elif name not in frame_to_search:
-                self.exit_with_error(54, 'CHYBA: Pokus o cteni neexistujici promenne (Ramec: {}, Promenna: {}'.format(frame, name))
+                self.exit_with_error(54, 'CHYBA: Pokus o cteni neexistujici promenne (Ramec: {}, Promenna: {})'.format(frame, name))
             else:
                 type = frame_to_search[name]['type']
                 value = frame_to_search[name]['value']

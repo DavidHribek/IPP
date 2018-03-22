@@ -116,6 +116,16 @@ def Main():
                 type = ''
             # zapis typu arg2 do promenne arg1 jako string
             frameHandler.set_var(curr_inst.arg1, 'string', type)
+        # CONCAT
+        elif curr_inst.opcode == 'CONCAT':
+            type1, value1 = frameHandler.get_arg_type_and_value(curr_inst.arg2)
+            type2, value2 = frameHandler.get_arg_type_and_value(curr_inst.arg3)
+            if type1 == type2 == 'string':
+                # konkatenace retezcu a zapis do promene arg1
+                frameHandler.set_var(curr_inst.arg1, 'string', value1+value2)
+            else:
+                # nepovolene typy operandu
+                errorHandler.exit_with_error(53, 'CHYBA: Spatne typy operandu instrukce CONCAT (Typ1: {}, Typ2: {})'.format(type1, type2))
 
 
 
