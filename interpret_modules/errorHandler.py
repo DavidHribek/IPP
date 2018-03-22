@@ -5,7 +5,7 @@
 #
 import sys
 
-def print_to_stderr(msg, *args):
+def print_to_stderr(msg):
     """Vypise zpravu na stderr"""
     print(msg, file=sys.stderr)
 

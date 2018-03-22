@@ -68,13 +68,18 @@ def Main():
         # DEFVAR
         elif curr_inst.opcode == 'DEFVAR':
             frameHandler.defvar(curr_inst.arg1)
-        # WRITE
-        elif curr_inst.opcode == 'WRITE':
+        # WRITE, DPRINT
+        elif curr_inst.opcode in  ['WRITE', 'DPRINT']:
             type, value = frameHandler.get_arg_type_and_value(curr_inst.arg1)
             if value is None:
                 # promenna nebyla inicializovana
                 errorHandler.exit_with_error(56, 'CHYBA: Pokus o cteni neinicializovane promenne ({})'.format(curr_inst.arg1['text']))
-            print(bytes(value, 'utf-8').decode('unicode_escape')) # TODO escape
+            if curr_inst.opcode == 'WRITE':
+                # WRITE
+                print(bytes(value, 'utf-8').decode('unicode_escape')) # TODO escape
+            else:
+                # DPRINT
+                print_to_stderr(bytes(value, 'utf-8').decode('unicode_escape')) # TODO escape
         # MOVE
         elif curr_inst.opcode == 'MOVE':
             type, value = frameHandler.get_arg_type_and_value(curr_inst.arg2)
