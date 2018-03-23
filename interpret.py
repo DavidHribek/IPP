@@ -176,6 +176,15 @@ def Main():
                     pass
             else:
                 errorHandler.exit_with_error(53, 'CHYBA: Argumenty instrukce {} nejsou stejneho typu (Typ1: {}, Typ2: {})'.format(curr_inst.opcode, type1, type2))
+        # CALL
+        elif curr_inst.opcode == 'CALL':
+            instList.push_next_instruction_to_call_stack() # ulozi pozici nasledujici instrukce do zasobniku volani
+            instList.jump_to_label(curr_inst.arg1)
+        # RETURN
+        elif curr_inst.opcode == 'RETURN':
+            instList.pop_next_instruction_from_call_stack()
+
+
 
     # print('ahoj')
 

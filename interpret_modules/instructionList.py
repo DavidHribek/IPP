@@ -11,6 +11,7 @@ class InstructionList(ErrorHandler):
         self.instruction_counter = 1         # interni citac instrukci
         self.instruction_done_number = 0     # pocet vykonanych instrukci
         self.labels = {}                     # slovnik navesti programu (klicem je nazev, hodnotou je pozice v kodu)
+        self.call_stack = []                 # zasobnik volani (instrukce CALL, RETURN)
 
     def insert_instruction(self, instruction):
         """Vlozi instrukci na instrukcni pasku"""
@@ -36,6 +37,20 @@ class InstructionList(ErrorHandler):
             return self.instructions[self.instruction_counter-1] # vraceni aktualni instrukce
         else:
             return None
+
+    def push_next_instruction_to_call_stack(self):
+        """Ulozi inkrementovanou aktualni pozici z interniho citace do zasobniku volani"""
+        self.call_stack.append(self.get_instruction_counter()+1)
+
+    def pop_next_instruction_from_call_stack(self):
+        """Vyjme hodnotu ze zasobniku volani a vlozi ji do interniho citace instrukci"""
+        if len(self.call_stack) > 0:
+            # zasobnik volani neni prazdny, muzeme vyjmout hodnotu a vlozit ji do citace instrukci
+            self.instruction_counter = self.call_stack.pop()
+        else:
+            # prazdny zasobnik volani
+            self.exit_with_error(56, 'CHYBA: Chybejici hodnota v zasobniku volani')
+
 
     def jump_to_label(self, i_arg_label):
         """Nastavi interni citac instrukci na hodnotu daneho navesti"""
