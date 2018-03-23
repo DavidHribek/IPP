@@ -143,7 +143,7 @@ def Main():
                 # nepovolene typy operandu
                 errorHandler.exit_with_error(53, 'CHYBA: Spatne typy operandu instrukce {} (Typ1: {}, Typ2: {})'.format(curr_inst.opcode, type1, type2))
         # NOT
-        if curr_inst.opcode == 'NOT':
+        elif curr_inst.opcode == 'NOT':
             type, value = frameHandler.get_arg_type_and_value(curr_inst.arg2)
             if type == 'bool':
                 # logicka negace
@@ -152,7 +152,15 @@ def Main():
             else:
                 errorHandler.exit_with_error(53, 'CHYBA: Spatny typ operandu instrukce NOT (Typ: {})'.format(type))
 
+        # LABEL
+        elif curr_inst.opcode == 'LABEL':
+            # navesti jiz jsou v slovniku navesti
+            continue
+        # JUMP
+        elif curr_inst.opcode == 'JUMP':
+            instList.jump_to_label(curr_inst.arg1)
 
+    # print('ahoj')
 
 if __name__ == '__main__':
     Main()

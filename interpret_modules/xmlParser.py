@@ -68,7 +68,7 @@ class XmlParser(ErrorHandler):
                     self.exit_with_error(31, 'CHYBA: Chybejici atribut type v elementu parametru instrukce')
                 # ARGUMENT: atribut type povolene hodnoty
                 if argument.attrib['type'] not in ['int', 'bool', 'string', 'label', 'type', 'var']:
-                    self.exit_with_error(32, 'CHYBA: Nepovolene hodnoty atributu type')
+                    self.exit_with_error(32, 'CHYBA: Nepovolena hodnota atributu type ({})'.format(argument.attrib['type']))
         # test instrukci s duplicitnim order number
         if len(instruction_order_numbers) != len(set(instruction_order_numbers)):
             self.exit_with_error(31, 'CHYBA: Instrukce s duplicitni hodnotou atributu order')
@@ -90,7 +90,7 @@ class XmlParser(ErrorHandler):
                 if argCount(instruction) == 0:
                     # vlozeni instrukce do instrukcni pasky
                     i = Instruction(instruction.attrib['opcode'])
-                    self.instList.insertInst(i)
+                    self.instList.insert_instruction(i)
                 else:
                     self.exit_with_error(31, 'CHYBA: Nespravny pocet parametru instrukce ({})'.format(instruction.attrib['opcode']))
             elif instruction.attrib['opcode'] in ['DEFVAR', 'POPS']: # <var>
@@ -100,7 +100,7 @@ class XmlParser(ErrorHandler):
                     self.checkVar(instruction[0])
                     # vlozeni instrukce do instrukcni pasky
                     i = Instruction(instruction.attrib['opcode'], arg1=instruction[0])
-                    self.instList.insertInst(i)
+                    self.instList.insert_instruction(i)
                 else:
                     self.exit_with_error(31, 'CHYBA: Nespravny pocet parametru instrukce ({})'.format(instruction.attrib['opcode']))
             elif instruction.attrib['opcode'] in ['PUSHS', 'WRITE', 'DPRINT']: # <symb>
@@ -110,7 +110,7 @@ class XmlParser(ErrorHandler):
                     self.checkSymb(instruction[0])
                     # vlozeni instrukce do instrukcni pasky
                     i = Instruction(instruction.attrib['opcode'], arg1=instruction[0])
-                    self.instList.insertInst(i)
+                    self.instList.insert_instruction(i)
                 else:
                     self.exit_with_error(31, 'CHYBA: Nespravny pocet parametru instrukce ({})'.format(instruction.attrib['opcode']))
             elif instruction.attrib['opcode'] in ['CALL', 'JUMP', 'LABEL']: # <label>
@@ -120,7 +120,7 @@ class XmlParser(ErrorHandler):
                     self.checkLabel(instruction[0])
                     # vlozeni instrukce do instrukcni pasky
                     i = Instruction(instruction.attrib['opcode'], arg1=instruction[0])
-                    self.instList.insertInst(i)
+                    self.instList.insert_instruction(i)
                 else:
                     self.exit_with_error(31, 'CHYBA: Nespravny pocet parametru instrukce ({})'.format(instruction.attrib['opcode']))
             elif instruction.attrib['opcode'] in ['MOVE', 'NOT', 'INT2CHAR', 'TYPE', 'STRLEN']: # <var> <symb>
@@ -131,7 +131,7 @@ class XmlParser(ErrorHandler):
                     self.checkSymb(instruction[1])
                     # vlozeni instrukce do instrukcni pasky
                     i = Instruction(instruction.attrib['opcode'], arg1=instruction[0], arg2=instruction[1])
-                    self.instList.insertInst(i)
+                    self.instList.insert_instruction(i)
                 else:
                     self.exit_with_error(31, 'CHYBA: Nespravny pocet parametru instrukce ({})'.format(instruction.attrib['opcode']))
             elif instruction.attrib['opcode'] in ['ADD', 'SUB', 'MUL', 'IDIV', 'LT', 'GT', 'EQ', 'AND', 'OR', 'STRI2INT', 'CONCAT', 'GETCHAR', 'SETCHAR']: # <var> <symb1> <symb2>
@@ -143,7 +143,7 @@ class XmlParser(ErrorHandler):
                     self.checkSymb(instruction[2])
                     # vlozeni instrukce do instrukcni pasky
                     i = Instruction(instruction.attrib['opcode'], arg1=instruction[0], arg2=instruction[1], arg3=instruction[2])
-                    self.instList.insertInst(i)
+                    self.instList.insert_instruction(i)
                 else:
                     self.exit_with_error(31, 'CHYBA: Nespravny pocet parametru instrukce ({})'.format(instruction.attrib['opcode']))
             elif instruction.attrib['opcode'] == 'READ': # <var> <type>
@@ -154,7 +154,7 @@ class XmlParser(ErrorHandler):
                     self.checkType(instruction[1])
                     # vlozeni instrukce do instrukcni pasky
                     i = Instruction(instruction.attrib['opcode'], arg1=instruction[0], arg2=instruction[1])
-                    self.instList.insertInst(i)
+                    self.instList.insert_instruction(i)
                 else:
                     self.exit_with_error(31, 'CHYBA: Nespravny pocet parametru instrukce ({})'.format(instruction.attrib['opcode']))
             elif instruction.attrib['opcode'] in ['JUMPIFEQ', 'JUMPIFNEQ']: # <label> <symb1> <symb2>
@@ -166,7 +166,7 @@ class XmlParser(ErrorHandler):
                     self.checkSymb(instruction[2])
                     # vlozeni instrukce do instrukcni pasky
                     i = Instruction(instruction.attrib['opcode'], arg1=instruction[0], arg2=instruction[1], arg3=instruction[2])
-                    self.instList.insertInst(i)
+                    self.instList.insert_instruction(i)
                 else:
                     self.exit_with_error(31, 'CHYBA: Nespravny pocet parametru instrukce ({})'.format(instruction.attrib['opcode']))
             else:
