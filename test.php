@@ -35,6 +35,7 @@ foreach ($DirectoryScanner->directories as $dir)
         exec('php5.6 ' . $Arguments->parseScript . ' < ' . $srcFile, $parseOutput, $parseReturnCode); // parse.php < soubor.src
         if ($parseReturnCode == 0) // nasleduje interpretace
         {
+            $TmpFile->reset();
             $TmpFile->writeExecOutput($parseOutput); // naplni tmp soubor vystupem z parseru
             unset($interpretOutput);
             exec('python3.6 ' . $Arguments->intScript . ' --source=' . $TmpFile->getPath() . ' < ' . $inFile, $interpretOutput, $interpretReturnCode); // interpret.py < XML
