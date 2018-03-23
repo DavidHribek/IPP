@@ -183,6 +183,46 @@ def Main():
         # RETURN
         elif curr_inst.opcode == 'RETURN':
             instList.pop_next_instruction_from_call_stack()
+        # LT, GT, EQ
+        elif curr_inst.opcode in ['LT', 'GT', 'EQ']:
+            type1, value1 = frameHandler.get_arg_type_and_value(curr_inst.arg2)
+            type2, value2 = frameHandler.get_arg_type_and_value(curr_inst.arg3)
+            if type1 == type2:
+                # typy jsou stejne
+                if curr_inst.opcode == 'EQ':
+                    # ekvivalence
+                    is_equal = 'true' if value1 == value2 else 'false'
+                    frameHandler.set_var(curr_inst.arg1, 'bool', is_equal)
+                elif curr_inst.opcode == 'LT':
+                    # mensi
+                    if type1 == 'int':
+                        # int
+                        is_lesser = 'true' if int(value1) < int(value2) else 'false'
+                        frameHandler.set_var(curr_inst.arg1, 'bool', is_lesser)
+                    elif type1 == 'bool':
+                        # bool
+                        is_lesser = 'true' if value1 == 'false' and value2 == 'true' else 'false'
+                        frameHandler.set_var(curr_inst.arg1, 'bool', is_lesser)
+                    else:
+                        #string
+                        is_lesser = 'true' if value1 < value2 else 'false'
+                        frameHandler.set_var(curr_inst.arg1, 'bool', is_lesser)
+                else:
+                    # vetsi
+                    if type1 == 'int':
+                        # int
+                        is_greater = 'true' if int(value1) > int(value2) else 'false'
+                        frameHandler.set_var(curr_inst.arg1, 'bool', is_greater)
+                    elif type1 == 'bool':
+                        # bool
+                        is_greater = 'true' if value1 == 'true' and value2 == 'false' else 'false'
+                        frameHandler.set_var(curr_inst.arg1, 'bool', is_greater)
+                    else:
+                        # string
+                        is_greater = 'true' if value1 > value2 else 'false'
+                        frameHandler.set_var(curr_inst.arg1, 'bool', is_greater)
+            else:
+                errorHandler.exit_with_error(53, 'CHYBA: Operandy instrukce {} nejsou stejneho typu (Typ1: {}, Typ2: {})'.format(curr_inst.opcode, type1, type2))
 
 
 
