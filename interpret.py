@@ -159,6 +159,23 @@ def Main():
         # JUMP
         elif curr_inst.opcode == 'JUMP':
             instList.jump_to_label(curr_inst.arg1)
+        # JUMPIFEQ
+        elif curr_inst.opcode in ['JUMPIFEQ', 'JUMPIFNEQ']:
+            type1, value1 = frameHandler.get_arg_type_and_value(curr_inst.arg2)
+            type2, value2 = frameHandler.get_arg_type_and_value(curr_inst.arg3)
+            if type1 == type2:
+                # stejne typy
+                if curr_inst.opcode == 'JUMPIFEQ' and value1 == value2:
+                    # skok na navesti pri rovnosti
+                    instList.jump_to_label(curr_inst.arg1)
+                elif curr_inst.opcode == 'JUMPIFNEQ' and value1 != value2:
+                    # skok na navesti pri nerovnosti
+                    instList.jump_to_label(curr_inst.arg1)
+                else:
+                    # instrukce se ignoruje
+                    pass
+            else:
+                errorHandler.exit_with_error(53, 'CHYBA: Argumenty instrukce {} nejsou stejneho typu (Typ1: {}, Typ2: {})'.format(curr_inst.opcode, type1, type2))
 
     # print('ahoj')
 
