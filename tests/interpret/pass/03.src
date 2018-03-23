@@ -1,0 +1,5 @@
+.ippcode18 #deklarace promenne, vypis
+DEFVAR GF@variable
+MOVE GF@variable int@20
+MOVE GF@variable int@42
+WRITE GF@variable

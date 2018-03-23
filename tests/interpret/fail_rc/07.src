@@ -1,0 +1,8 @@
+.IPPcode18 # cteni neinicializovane promenne GF@prom
+DEFVAR GF@prom
+PUSHS int@20
+PUSHS int@220 #druhy komentar
+WRITE GF@prom #komentar\032\010
+POPS GF@prom
+#jen komentar
+#konec souboru
