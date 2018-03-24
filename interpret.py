@@ -77,10 +77,12 @@ def Main():
                 errorHandler.exit_with_error(56, 'CHYBA: Pokus o cteni neinicializovane promenne ({})'.format(curr_inst.arg1['text']))
             if curr_inst.opcode == 'WRITE':
                 # WRITE
-                print(bytes(value, 'utf-8').decode('unicode_escape')) # TODO escape
+                print(value)
+                # print(bytes(value, 'utf-8').decode('unicode_escape')) # TODO escape
             else:
                 # DPRINT
-                print_to_stderr(bytes(value, 'utf-8').decode('unicode_escape')) # TODO escape
+                print_to_stderr(value)
+                # print_to_stderr(bytes(value, 'utf-8').decode('unicode_escape')) # TODO escape
         # MOVE
         elif curr_inst.opcode == 'MOVE':
             type, value = frameHandler.get_arg_type_and_value(curr_inst.arg2)
@@ -223,6 +225,15 @@ def Main():
                         frameHandler.set_var(curr_inst.arg1, 'bool', is_greater)
             else:
                 errorHandler.exit_with_error(53, 'CHYBA: Operandy instrukce {} nejsou stejneho typu (Typ1: {}, Typ2: {})'.format(curr_inst.opcode, type1, type2))
+        # STRLEN
+        elif curr_inst.opcode == 'STRLEN':
+            type, value = frameHandler.get_arg_type_and_value(curr_inst.arg2)
+            if type == 'string':
+                # typ je spravny
+                frameHandler.set_var(curr_inst.arg1, 'int', len(value))
+            else:
+                errorHandler.exit_with_error(53, 'CHYBA: Operand instrukce STRLEN neni typu string (Typ: {})'.format(type))
+
 
 
 

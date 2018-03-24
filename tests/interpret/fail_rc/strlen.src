@@ -1,0 +1,4 @@
+.IPPcode18 # strlen (spatne typy operandu)
+defvar GF@prom
+move GF@prom int@10
+strLEN GF@prom GF@prom

@@ -1,0 +1,6 @@
+.ippCODE18 # strlen, vypis: 8
+DEFVAr GF@promenna
+defvar GF@retezec
+move GF@retezec string@abcdefgh
+strlen GF@promenna GF@retezec
+write GF@promenna
