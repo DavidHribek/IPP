@@ -1,0 +1,7 @@
+.IPPcode18 # nahrazeni znaku d znakem D, vypis: David
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@retezec
+MOVE LF@retezec string@david
+SETCHAR LF@retezec int@0 string@D
+WRITE LF@retezec

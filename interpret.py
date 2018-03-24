@@ -248,7 +248,28 @@ def Main():
                     errorHandler.exit_with_error(58, 'CHYBA: Indexace mimo retezec u instrukce GETCHAR')
             else:
                 errorHandler.exit_with_error(53, 'CHYBA: Operandy instrukce GETCHAR nejsou typu string a int (Typ1: {}, Typ2: {})'.format(type1, type2))
-
+        # SETCHAR
+        elif curr_inst.opcode == 'SETCHAR':
+            type1, value1 = frameHandler.get_arg_type_and_value(curr_inst.arg1)
+            type2, value2 = frameHandler.get_arg_type_and_value(curr_inst.arg2)
+            type3, value3 = frameHandler.get_arg_type_and_value(curr_inst.arg3)
+            if type1 == 'string' and type2 == 'int' and type3 == 'string':
+                # spravne typy
+                index = int(value2)
+                if value3 == '':
+                    # prazdny retezec arg3
+                    errorHandler.exit_with_error(58, 'CHYBA: Prazdny retezec s nahrazujicim znakem u instrukce SETCHAR')
+                elif not (index >= 0 and index <= len(value1)-1):
+                    # indexace mimo retezec promenne arg1
+                    errorHandler.exit_with_error(58, 'CHYBA: Indexace mimo retezec u instrukce SETCHAR')
+                else:
+                    # nahrazeni znaku
+                    value1 = list(value1)
+                    value1[index] = value3[0]
+                    value1 = ''.join(value1)
+                    frameHandler.set_var(curr_inst.arg1, 'string', value1)
+            else:
+                errorHandler.exit_with_error(53, 'CHYBA: Spatne typy operandu instrukce SETCHAR (Typ1: {}, Typ2: {}, Typ3: {})'.format(type1, type2, type3))
 
 
     # print('ahoj')
