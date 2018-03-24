@@ -270,6 +270,18 @@ def Main():
                     frameHandler.set_var(curr_inst.arg1, 'string', value1)
             else:
                 errorHandler.exit_with_error(53, 'CHYBA: Spatne typy operandu instrukce SETCHAR (Typ1: {}, Typ2: {}, Typ3: {})'.format(type1, type2, type3))
+        # INT2CHAR
+        elif curr_inst.opcode == 'INT2CHAR':
+            type, value = frameHandler.get_arg_type_and_value(curr_inst.arg2)
+            if type == 'int':
+                # spravne typy operandu
+                try:
+                    char = chr(int(value))
+                except ValueError:
+                    errorHandler.exit_with_error(58, 'CHYBA: Nevalidni ordinalni hodnota znaku v Unicode instrukce INT2CHAR (Hodnota: {})'.format(value))
+                frameHandler.set_var(curr_inst.arg1, 'string', char)
+            else:
+                errorHandler.exit_with_error(53, 'CHYBA: Spatny typ operandu instrukce INT2CHAR (Typ: {})'.format(type))
 
 
     # print('ahoj')

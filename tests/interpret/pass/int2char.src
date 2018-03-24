@@ -1,0 +1,4 @@
+.ippcode18 # INT2CHAR, vypis: D
+DEFVAR GF@char
+INT2CHAR GF@char int@68
+WRITE GF@char

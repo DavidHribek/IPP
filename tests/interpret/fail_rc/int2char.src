@@ -1,0 +1,4 @@
+.ippcode18 # INT2CHAR, nevalidni hodnota v Unicode
+DEFVAR GF@char
+INT2CHAR GF@char int@2000000
+WRITE GF@char
