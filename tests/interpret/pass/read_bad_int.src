@@ -1,0 +1,6 @@
+.ippcode18 # READ, spatny vstup
+DEFVAR GF@input
+READ GF@input int
+WRITE GF@input
+TYPE GF@input GF@input
+WRITE GF@input

@@ -298,7 +298,41 @@ def Main():
                     errorHandler.exit_with_error(58, 'CHYBA: Indexace mimo retezec u instrukce STR2INT')
             else:
                 errorHandler.exit_with_error(53, 'CHYBA: Spatne typy operandu instrukce STR2INT (Typ1: {}, Typ2: {}'.format(type1, type2))
+        # READ
+        elif curr_inst.opcode == 'READ':
+            type, value = frameHandler.get_arg_type_and_value(curr_inst.arg2)
 
+            try:
+                usr_input = input()
+            except Exception:
+                usr_input = ''
+
+            if value == 'int':
+                # hodnota typu je int
+                try:
+                    usr_input = int(usr_input)
+                except Exception:
+                    # chybny vstup, implicitni hodnota
+                    usr_input = 0
+                finally:
+                    frameHandler.set_var(curr_inst.arg1, 'int', usr_input)
+            elif value == 'bool':
+                # hodnota typu je bool
+                if usr_input.lower() == 'true':
+                    # true
+                    usr_input = 'true'
+                else:
+                    # cokoliv jineho false
+                    usr_input = 'false'
+                frameHandler.set_var(curr_inst.arg1, 'bool', usr_input)
+            else:
+                # hodnota typu je string
+                try:
+                    usr_input = str(usr_input)
+                except Exception:
+                    usr_input = '' # TODO kdy to nastane?
+                finally:
+                    frameHandler.set_var(curr_inst.arg1, 'string', usr_input)
     # print('ahoj')
 
 if __name__ == '__main__':

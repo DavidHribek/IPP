@@ -68,7 +68,7 @@ class FrameHandler(ErrorHandler):
         return i_arg_variable['text'].split('@', 1)
 
     def get_arg_type_and_value(self, i_arg):
-        if i_arg['type'] in ['int', 'bool', 'string']:
+        if i_arg['type'] in ['int', 'bool', 'string', 'type', 'label']:
             # vrati typ literalu + hodnotu
             return (i_arg['type'], i_arg['text'])
         else:

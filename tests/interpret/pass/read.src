@@ -1,0 +1,18 @@
+.ippcode18 # READ, vypis 123456789 int
+DEFVAR GF@int
+READ GF@int int
+WRITE GF@int
+TYPE GF@int GF@int
+WRITE GF@int
+
+DEFVAR GF@bool
+READ GF@bool bool
+WRITE GF@bool
+TYPE GF@bool GF@bool
+WRITE GF@bool
+
+DEFVAR GF@string
+READ GF@string string
+WRITE GF@string
+TYPE GF@string GF@string
+WRITE GF@string
