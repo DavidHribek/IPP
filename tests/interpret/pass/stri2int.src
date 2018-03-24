@@ -1,0 +1,4 @@
+.ippcode18 # STR2INT, vypis: 404
+DEFVAR GF@ord_value
+STRI2INT GF@ord_value string@hodnotaƔjeCtyriStaCtyri int@7
+WRITE GF@ord_value

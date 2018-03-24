@@ -1,0 +1,4 @@
+.ippcode18 # STR2INT, indexace mimo retezec
+DEFVAR GF@ord_value
+STRI2INT GF@ord_value string@hodnotaƔjeCtyriStaCtyri int@23
+WRITE GF@ord_value

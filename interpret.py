@@ -282,7 +282,22 @@ def Main():
                 frameHandler.set_var(curr_inst.arg1, 'string', char)
             else:
                 errorHandler.exit_with_error(53, 'CHYBA: Spatny typ operandu instrukce INT2CHAR (Typ: {})'.format(type))
-
+        # STRI2INT
+        elif curr_inst.opcode == 'STRI2INT':
+            type1, value1 = frameHandler.get_arg_type_and_value(curr_inst.arg2)
+            type2, value2 = frameHandler.get_arg_type_and_value(curr_inst.arg3)
+            if type1 == 'string' and type2 == 'int':
+                # spravne typy operandu
+                index = int(value2)
+                if index >= 0 and index <= len(value1)-1:
+                    # index je ok
+                    ord_val = ord(value1[index])
+                    frameHandler.set_var(curr_inst.arg1, 'int', ord_val)
+                else:
+                    # indexace mimo retezec arg2
+                    errorHandler.exit_with_error(58, 'CHYBA: Indexace mimo retezec u instrukce STR2INT')
+            else:
+                errorHandler.exit_with_error(53, 'CHYBA: Spatne typy operandu instrukce STR2INT (Typ1: {}, Typ2: {}'.format(type1, type2))
 
     # print('ahoj')
 
