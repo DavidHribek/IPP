@@ -1,0 +1,5 @@
+.IPPCODE18 # getchar, vypis: D
+CREATEFRAME
+DEFVAR TF@prom
+GETCHAR TF@prom string@chcivelkyznakDavid int@+13
+WRITE TF@prom

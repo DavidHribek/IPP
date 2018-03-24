@@ -233,7 +233,21 @@ def Main():
                 frameHandler.set_var(curr_inst.arg1, 'int', len(value))
             else:
                 errorHandler.exit_with_error(53, 'CHYBA: Operand instrukce STRLEN neni typu string (Typ: {})'.format(type))
-
+        # GETCHAR
+        elif curr_inst.opcode == 'GETCHAR':
+            type1, value1 = frameHandler.get_arg_type_and_value(curr_inst.arg2)
+            type2, value2 = frameHandler.get_arg_type_and_value(curr_inst.arg3)
+            if type1 == 'string' and type2 == 'int':
+                # typy jsou spravne
+                index = int(value2)
+                if index >= 0 and index <= len(value1)-1:
+                    # index je spravny, zapis znaku do promenne arg1
+                    frameHandler.set_var(curr_inst.arg1, 'string', value1[index])
+                else:
+                    # indexace mimo retezec
+                    errorHandler.exit_with_error(58, 'CHYBA: Indexace mimo retezec u instrukce GETCHAR')
+            else:
+                errorHandler.exit_with_error(53, 'CHYBA: Operandy instrukce GETCHAR nejsou typu string a int (Typ1: {}, Typ2: {})'.format(type1, type2))
 
 
 

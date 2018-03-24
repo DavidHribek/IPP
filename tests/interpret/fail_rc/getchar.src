@@ -1,0 +1,5 @@
+.IPPCODE18 # getchar, spatny index
+CREATEFRAME
+DEFVAR TF@prom
+GETCHAR TF@prom string@chcivelkyznakDavid int@18
+WRITE TF@prom
