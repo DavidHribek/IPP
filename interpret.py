@@ -98,7 +98,7 @@ def Main():
                 elif curr_inst.opcode == 'SUB':
                     # odecteni
                     frameHandler.set_var(curr_inst.arg1, 'int', str(int(value1) - int(value2)))
-                elif curr_inst == 'MUL':
+                elif curr_inst.opcode == 'MUL':
                     # vynasobeni
                     frameHandler.set_var(curr_inst.arg1, 'int', str(int(value1) * int(value2)))
                 else:
