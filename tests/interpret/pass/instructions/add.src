@@ -1,0 +1,6 @@
+.ippcode18 # secteni, vypis: 100,int
+DEFVAR GF@prom
+ADD GF@prom int@85 int@15
+WRITE GF@prom
+TYPE GF@prom GF@prom
+WRITE GF@prom

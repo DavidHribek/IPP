@@ -1,0 +1,25 @@
+.ippcode18
+JUMP main
+
+# funkce secte dve cisla
+LABEL addXY
+PUSHFRAME
+DEFVAR LF@retval
+ADD LF@retval LF@arg1 LF@arg2
+POPFRAME
+RETURN
+
+
+
+# main
+LABEL main
+
+CREATEFRAME
+DEFVAR TF@arg1
+MOVE TF@arg1 int@99999
+DEFVAR TF@arg2
+MOVE TF@arg2 int@12549
+
+CALL addXY
+
+WRITE TF@retval

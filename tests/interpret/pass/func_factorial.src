@@ -1,0 +1,29 @@
+.ippcode18 # faktorial, vypis:
+JUMP main
+
+# funkce pro vypocet faktorialu, vysledek v GF@fac
+LABEL factorial
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@number
+POPS LF@number
+MUL GF@fac GF@fac LF@number
+SUB LF@number LF@number int@1
+PUSHS LF@number
+JUMPIFEQ end_factorial LF@number int@1
+#else
+CALL factorial
+LABEL end_factorial
+POPFRAME
+RETURN
+
+
+
+
+LABEL main
+
+DEFVAR GF@fac
+MOVE GF@fac int@1
+PUSHS int@6 # parametr funkce
+CALL factorial
+WRITE GF@fac

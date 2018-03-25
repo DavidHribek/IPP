@@ -1,0 +1,6 @@
+.ippcode18 # vynasob, vypis: 120,int
+DEFVAR GF@prom
+MUL GF@prom int@20 int@6
+WRITE GF@prom
+TYPE GF@prom GF@prom
+WRITE GF@prom

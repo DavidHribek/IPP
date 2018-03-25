@@ -1,0 +1,6 @@
+.ippcode18 # odecti, vypis: 70,int
+DEFVAR GF@prom
+SUB GF@prom int@85 int@15
+WRITE GF@prom
+TYPE GF@prom GF@prom
+WRITE GF@prom
