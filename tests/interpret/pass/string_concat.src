@@ -1,0 +1,13 @@
+.ippcode18 #konkatenace retezcu
+DEFVAR GF@string
+DEFVAR GF@space
+MOVE GF@space string@\032
+
+MOVE GF@string string@string
+CONCAT GF@string GF@string GF@space
+CONCAT GF@string GF@string string@STRING
+CONCAT GF@string GF@string GF@space
+CONCAT GF@string GF@string string@STRING
+CONCAT GF@string GF@string string@\009 # tabulator
+CONCAT GF@string GF@string string@konec
+WRITE GF@string

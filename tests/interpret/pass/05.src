@@ -1,5 +1,0 @@
-.ippcode18 #konkatenace retezcu
-DEFVAR GF@string
-MOVE GF@string string@string
-CONCAT GF@string GF@string string@STRING
-WRITE GF@string

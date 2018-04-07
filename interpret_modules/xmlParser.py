@@ -205,6 +205,10 @@ class XmlParser(ErrorHandler):
                     arg.text = ''
                 elif not re.search('^(\\\\[0-9]{3}|[^\s\\\\#])*$', arg.text):
                     self.exit_with_error(32, 'CHYBA: Chybna hodnota string ({})'.format(arg.text))
+                else:
+                    # string je ok, prevod escape sekvenci
+                    # reg. vyraz najde escape sekvence v retezci, prevede je na int a pomoci funce chr je prevede na char
+                    arg.text = re.sub(r'\\([0-9]{3})', lambda x: chr(int(x.group(1))), arg.text)
         elif arg.attrib['type'] == 'var':
             # var
             self.checkVar(arg)

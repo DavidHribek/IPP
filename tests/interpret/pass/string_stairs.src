@@ -1,0 +1,20 @@
+.ippCODE18
+
+DEFVAR GF@symb
+MOVE GF@symb string@_
+
+DEFVAR GF@var
+MOVE GF@var string@
+
+DEFVAR GF@counter # counter end
+MOVE GF@counter int@0
+
+LABEL start
+JUMPIFEQ end GF@counter int@100 # konec
+ADD GF@counter GF@counter int@1 # pricteni citace
+
+CONCAT GF@var GF@var GF@symb # pridej schod
+WRITE GF@var # vypis radu schodu
+
+JUMP start
+LABEL end
