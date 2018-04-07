@@ -29,6 +29,7 @@ class ArgChecker(ErrorHandler):
         o, v = opts
         if o == '--help':
             print('HELP TEXT') # TODO
+            exit(0);
         elif o == '--source':
             self.source = v
         else:
