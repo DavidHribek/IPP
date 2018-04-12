@@ -1,0 +1,5 @@
+.ippcode18 # type
+DEFVAR GF@prom
+MOVE GF@prom int@10
+TYPE GF@prom GF@prom
+WRITE GF@prom

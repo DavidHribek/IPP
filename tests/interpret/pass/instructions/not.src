@@ -1,0 +1,8 @@
+.ippcode18 # NOT
+DEFVAR GF@result
+
+NOT GF@result bool@false
+WRITE GF@result
+
+NOT GF@result bool@true
+WRITE GF@result

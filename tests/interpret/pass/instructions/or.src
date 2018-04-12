@@ -1,0 +1,14 @@
+.ippcode18 # OR
+DEFVAR GF@result
+
+OR GF@result bool@false bool@false
+WRITE GF@result
+
+OR GF@result bool@false bool@true
+WRITE GF@result
+
+OR GF@result bool@true bool@false
+WRITE GF@result
+
+OR GF@result bool@true bool@true
+WRITE GF@result

@@ -1,0 +1,29 @@
+.ippcode18 # EQ
+DEFVAR GF@var
+
+EQ GF@var int@20 int@30
+WRITE GF@var
+
+EQ GF@var int@30 int@30
+WRITE GF@var
+
+EQ GF@var bool@false bool@false
+WRITE GF@var
+
+EQ GF@var bool@false bool@true
+WRITE GF@var
+
+EQ GF@var bool@true bool@false
+WRITE GF@var
+
+EQ GF@var bool@true bool@true
+WRITE GF@var
+
+EQ GF@var string@abc string@abcd
+WRITE GF@var
+
+EQ GF@var string@abcd string@abcd
+WRITE GF@var
+
+EQ GF@var string@abd string@abc
+WRITE GF@var
