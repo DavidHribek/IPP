@@ -41,7 +41,7 @@ foreach ($DirectoryScanner->directories as $dir)
             exec('python3.6 ' . $Arguments->intScript . ' --source=' . $TmpFile->getPath() . ' < ' . $inFile, $interpretOutput, $interpretReturnCode); // interpret.py < XML
             $TmpFile->reset();
             $TmpFile->writeExecOutput($interpretOutput); // naplni tmp soubor vystupem z interpretu
-//            fprintf(STDERR, "INT OUTP: |" . $TmpFile->getAsString() . "|\n"); // DEBUG
+//            fprintf(STDERR, $TmpFile->getAsString()); // DEBUG
 //            fprintf(STDERR, "REF OUTP: |" . file_get_contents($outFile) . "|\n"); // DEBUG
             if ($interpretReturnCode == file_get_contents($rcFile)) // ocekavany navratovy kod
             {
@@ -533,5 +533,7 @@ class TemporaryFile
     {
 //        file_put_contents($this->getPath(), implode("\n", $array));
         fwrite($this->file, implode("\n", $array));
+        if (count($array) > 0)
+            fwrite($this->file,"\n");
     }
 }
