@@ -176,14 +176,14 @@ class XmlParser(ErrorHandler):
     def checkLabel(self, arg):
         """Kontrola validity navesti"""
         if arg.attrib['type'] != 'label':
-            self.exit_with_error(32, 'CHYBA: Chybny atribut type u navesti ({})'.format(arg.attrib['type']))
+            self.exit_with_error(52, 'CHYBA: Chybny atribut type u navesti ({})'.format(arg.attrib['type']))
         if arg.text is None or not re.match('^(_|-|\$|&|%|\*|[a-zA-Z])(_|-|\$|&|%|\*|[a-zA-Z0-9])*$', arg.text):
             self.exit_with_error(32, 'CHYBA: Chybne navesti ({})'.format(arg.text))
 
     def checkVar(self, arg):
         """Kontrola validity promenne"""
         if arg.attrib['type'] != 'var':
-            self.exit_with_error(32, 'CHYBA: Chybny atribut type u promenne ({})'.format(arg.attrib['type']))
+            self.exit_with_error(52, 'CHYBA: Chybny atribut type u promenne ({})'.format(arg.attrib['type']))
         if arg.text is None or not re.match('^(GF|LF|TF)@(_|-|\$|&|%|\*|[a-zA-Z])(_|-|\$|&|%|\*|[a-zA-Z0-9])*$', arg.text):
             self.exit_with_error(32, 'CHYBA: Chybny nazev promenne ({})'.format(arg.text))
 
@@ -214,11 +214,11 @@ class XmlParser(ErrorHandler):
             self.checkVar(arg)
         else:
             # <symb> musi byt int/bool/string/var
-            self.exit_with_error(32, 'CHYBA: Chybny atribut type u symbolu ({})'.format(arg.attrib['type']))
+            self.exit_with_error(52, 'CHYBA: Chybny atribut type u symbolu ({})'.format(arg.attrib['type']))
 
     def checkType(self, arg):
         """Kontrola validity type"""
         if arg.attrib['type'] != 'type':
-            self.exit_with_error(32, 'CHYBA: Chybny atribut type u typu ({})'.format(arg.attrib['type']))
+            self.exit_with_error(52, 'CHYBA: Chybny atribut type u typu ({})'.format(arg.attrib['type']))
         if arg.text is None or not re.match('^(int|bool|string)$', arg.text):
             self.exit_with_error(32, 'CHYBA: Chybny typ ({})'.format(arg.text))

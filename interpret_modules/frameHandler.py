@@ -69,8 +69,8 @@ class FrameHandler(ErrorHandler):
 
     def get_arg_type_and_value(self, i_arg):
         if i_arg['type'] in ['int', 'bool', 'string', 'type', 'label']:
-            # vrati typ literalu + hodnotu
-            return (i_arg['type'], i_arg['text'])
+            # vrati typ literalu + hodnotu, False (neni v promenne)
+            return (i_arg['type'], i_arg['text'], False)
         else:
             # symb je promenna
             frame, name = self.parse_arg_variable_frame_and_name(i_arg)
@@ -82,7 +82,7 @@ class FrameHandler(ErrorHandler):
             else:
                 type = frame_to_search[name]['type']
                 value = frame_to_search[name]['value']
-                return (type, value)
+                return (type, value, True) # True protoze je v promenne
 
     def set_var(self, i_arg_variable, type, value):
         """Vlozi novou hodnotu do promenne i_arg_variable"""

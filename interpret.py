@@ -51,7 +51,7 @@ def Main():
 
         # PUSHS
         elif curr_inst.opcode == 'PUSHS':
-            type, value = frameHandler.get_arg_type_and_value(curr_inst.arg1)
+            type, value, in_variable = frameHandler.get_arg_type_and_value(curr_inst.arg1)
             dataStack.pushValue(type, value)
         # POPS
         elif curr_inst.opcode == 'POPS':
@@ -71,7 +71,7 @@ def Main():
             frameHandler.defvar(curr_inst.arg1)
         # WRITE, DPRINT
         elif curr_inst.opcode in  ['WRITE', 'DPRINT']:
-            type, value = frameHandler.get_arg_type_and_value(curr_inst.arg1)
+            type, value, in_variable = frameHandler.get_arg_type_and_value(curr_inst.arg1)
             if value is None:
                 # promenna nebyla inicializovana
                 errorHandler.exit_with_error(56, 'CHYBA: Pokus o cteni neinicializovane promenne ({})'.format(curr_inst.arg1['text']))
@@ -85,12 +85,12 @@ def Main():
                 # print_to_stderr(bytes(value, 'utf-8').decode('unicode_escape')) # TODO escape
         # MOVE
         elif curr_inst.opcode == 'MOVE':
-            type, value = frameHandler.get_arg_type_and_value(curr_inst.arg2)
+            type, value, in_variable = frameHandler.get_arg_type_and_value(curr_inst.arg2)
             frameHandler.set_var(curr_inst.arg1, type, value)
         # ADD, SUB, MUL, IDIV
         elif curr_inst.opcode in ['ADD', 'SUB', 'MUL', 'IDIV']:
-            type1, value1 = frameHandler.get_arg_type_and_value(curr_inst.arg2)
-            type2, value2 = frameHandler.get_arg_type_and_value(curr_inst.arg3)
+            type1, value1, in_variable1 = frameHandler.get_arg_type_and_value(curr_inst.arg2)
+            type2, value2, in_variable2 = frameHandler.get_arg_type_and_value(curr_inst.arg3)
             if type1 == type2 == 'int':
                 if curr_inst.opcode == 'ADD':
                     # secteni
@@ -109,10 +109,13 @@ def Main():
                     else:
                         frameHandler.set_var(curr_inst.arg1, 'int', str(int(value1) // int(value2)))
             else:
-                errorHandler.exit_with_error(53, 'CHYBA: Spatne typy operandu instrukce ADD (Typ1: {}, Typ2: {})'.format(type1, type2))
+                if in_variable1 or in_variable2:
+                    errorHandler.exit_with_error(53, 'CHYBA: Spatne typy operandu instrukce ADD (Typ1: {}, Typ2: {})'.format(type1, type2))
+                else:
+                    errorHandler.exit_with_error(52, 'CHYBA: Spatne typy operandu instrukce ADD (Typ1: {}, Typ2: {})'.format(type1, type2))
         # TYPE
         elif curr_inst.opcode == 'TYPE':
-            type, value = frameHandler.get_arg_type_and_value(curr_inst.arg2)
+            type, value, in_variable = frameHandler.get_arg_type_and_value(curr_inst.arg2)
             if type is None:
                 # pokud se jedna o neinicializovanou promennou, prepsat type na prazdny string
                 type = ''
@@ -120,18 +123,21 @@ def Main():
             frameHandler.set_var(curr_inst.arg1, 'string', type)
         # CONCAT
         elif curr_inst.opcode == 'CONCAT':
-            type1, value1 = frameHandler.get_arg_type_and_value(curr_inst.arg2)
-            type2, value2 = frameHandler.get_arg_type_and_value(curr_inst.arg3)
+            type1, value1, in_variable1 = frameHandler.get_arg_type_and_value(curr_inst.arg2)
+            type2, value2, in_variable2 = frameHandler.get_arg_type_and_value(curr_inst.arg3)
             if type1 == type2 == 'string':
                 # konkatenace retezcu a zapis do promene arg1
                 frameHandler.set_var(curr_inst.arg1, 'string', value1+value2)
             else:
                 # nepovolene typy operandu
-                errorHandler.exit_with_error(53, 'CHYBA: Spatne typy operandu instrukce CONCAT (Typ1: {}, Typ2: {})'.format(type1, type2))
+                if in_variable1 or in_variable2:
+                    errorHandler.exit_with_error(53, 'CHYBA: Spatne typy operandu instrukce CONCAT (Typ1: {}, Typ2: {})'.format(type1, type2))
+                else:
+                    errorHandler.exit_with_error(52, 'CHYBA: Spatne typy operandu instrukce CONCAT (Typ1: {}, Typ2: {})'.format(type1, type2))
         # AND, OR
         elif curr_inst.opcode in ['AND', 'OR']:
-            type1, value1 = frameHandler.get_arg_type_and_value(curr_inst.arg2)
-            type2, value2 = frameHandler.get_arg_type_and_value(curr_inst.arg3)
+            type1, value1, in_variable1 = frameHandler.get_arg_type_and_value(curr_inst.arg2)
+            type2, value2, in_variable2 = frameHandler.get_arg_type_and_value(curr_inst.arg3)
             if type1 == type2 == 'bool':
                 if curr_inst.opcode == 'AND':
                     # logicky soucin
@@ -143,16 +149,22 @@ def Main():
                     frameHandler.set_var(curr_inst.arg1, 'bool', log_and)
             else:
                 # nepovolene typy operandu
-                errorHandler.exit_with_error(53, 'CHYBA: Spatne typy operandu instrukce {} (Typ1: {}, Typ2: {})'.format(curr_inst.opcode, type1, type2))
+                if in_variable1 or in_variable2:
+                    errorHandler.exit_with_error(53, 'CHYBA: Spatne typy operandu instrukce {} (Typ1: {}, Typ2: {})'.format(curr_inst.opcode, type1, type2))
+                else:
+                    errorHandler.exit_with_error(52, 'CHYBA: Spatne typy operandu instrukce {} (Typ1: {}, Typ2: {})'.format(curr_inst.opcode, type1, type2))
         # NOT
         elif curr_inst.opcode == 'NOT':
-            type, value = frameHandler.get_arg_type_and_value(curr_inst.arg2)
+            type, value, in_variable = frameHandler.get_arg_type_and_value(curr_inst.arg2)
             if type == 'bool':
                 # logicka negace
                 log_not = 'true' if value == 'false' else 'false'
                 frameHandler.set_var(curr_inst.arg1, 'bool', log_not)
             else:
-                errorHandler.exit_with_error(53, 'CHYBA: Spatny typ operandu instrukce NOT (Typ: {})'.format(type))
+                if in_variable:
+                    errorHandler.exit_with_error(53, 'CHYBA: Spatny typ promenne operandu instrukce NOT (Typ: {})'.format(type))
+                else:
+                    errorHandler.exit_with_error(52, 'CHYBA: Spatny typ operandu instrukce NOT (Typ: {})'.format(type))
 
         # LABEL
         elif curr_inst.opcode == 'LABEL':
@@ -163,8 +175,8 @@ def Main():
             instList.jump_to_label(curr_inst.arg1)
         # JUMPIFEQ
         elif curr_inst.opcode in ['JUMPIFEQ', 'JUMPIFNEQ']:
-            type1, value1 = frameHandler.get_arg_type_and_value(curr_inst.arg2)
-            type2, value2 = frameHandler.get_arg_type_and_value(curr_inst.arg3)
+            type1, value1, in_variable1 = frameHandler.get_arg_type_and_value(curr_inst.arg2)
+            type2, value2, in_variable2 = frameHandler.get_arg_type_and_value(curr_inst.arg3)
             if type1 == type2:
                 # stejne typy
                 if curr_inst.opcode == 'JUMPIFEQ' and value1 == value2:
@@ -177,7 +189,10 @@ def Main():
                     # instrukce se ignoruje
                     pass
             else:
-                errorHandler.exit_with_error(53, 'CHYBA: Argumenty instrukce {} nejsou stejneho typu (Typ1: {}, Typ2: {})'.format(curr_inst.opcode, type1, type2))
+                if in_variable1 or in_variable2:
+                    errorHandler.exit_with_error(53, 'CHYBA: Argumenty instrukce {} nejsou stejneho typu (Typ1: {}, Typ2: {})'.format(curr_inst.opcode, type1, type2))
+                else:
+                    errorHandler.exit_with_error(52, 'CHYBA: Argumenty instrukce {} nejsou stejneho typu (Typ1: {}, Typ2: {})'.format(curr_inst.opcode, type1, type2))
         # CALL
         elif curr_inst.opcode == 'CALL':
             instList.push_next_instruction_to_call_stack() # ulozi pozici nasledujici instrukce do zasobniku volani
@@ -187,8 +202,8 @@ def Main():
             instList.pop_next_instruction_from_call_stack()
         # LT, GT, EQ
         elif curr_inst.opcode in ['LT', 'GT', 'EQ']:
-            type1, value1 = frameHandler.get_arg_type_and_value(curr_inst.arg2)
-            type2, value2 = frameHandler.get_arg_type_and_value(curr_inst.arg3)
+            type1, value1, in_variable1 = frameHandler.get_arg_type_and_value(curr_inst.arg2)
+            type2, value2, in_variable2 = frameHandler.get_arg_type_and_value(curr_inst.arg3)
             if type1 == type2:
                 # typy jsou stejne
                 if curr_inst.opcode == 'EQ':
@@ -224,19 +239,25 @@ def Main():
                         is_greater = 'true' if value1 > value2 else 'false'
                         frameHandler.set_var(curr_inst.arg1, 'bool', is_greater)
             else:
-                errorHandler.exit_with_error(53, 'CHYBA: Operandy instrukce {} nejsou stejneho typu (Typ1: {}, Typ2: {})'.format(curr_inst.opcode, type1, type2))
+                if in_variable1 or in_variable2:
+                    errorHandler.exit_with_error(53, 'CHYBA: Operandy instrukce {} nejsou stejneho typu (Typ1: {}, Typ2: {})'.format(curr_inst.opcode, type1, type2))
+                else:
+                    errorHandler.exit_with_error(52, 'CHYBA: Operandy instrukce {} nejsou stejneho typu (Typ1: {}, Typ2: {})'.format(curr_inst.opcode, type1, type2))
         # STRLEN
         elif curr_inst.opcode == 'STRLEN':
-            type, value = frameHandler.get_arg_type_and_value(curr_inst.arg2)
+            type, value, in_variable = frameHandler.get_arg_type_and_value(curr_inst.arg2)
             if type == 'string':
                 # typ je spravny
                 frameHandler.set_var(curr_inst.arg1, 'int', len(value))
             else:
-                errorHandler.exit_with_error(53, 'CHYBA: Operand instrukce STRLEN neni typu string (Typ: {})'.format(type))
+                if in_variable:
+                    errorHandler.exit_with_error(53, 'CHYBA: Operand instrukce STRLEN neni typu string (Typ: {})'.format(type))
+                else:
+                    errorHandler.exit_with_error(52, 'CHYBA: Operand instrukce STRLEN neni typu string (Typ: {})'.format(type))
         # GETCHAR
         elif curr_inst.opcode == 'GETCHAR':
-            type1, value1 = frameHandler.get_arg_type_and_value(curr_inst.arg2)
-            type2, value2 = frameHandler.get_arg_type_and_value(curr_inst.arg3)
+            type1, value1, in_variable1 = frameHandler.get_arg_type_and_value(curr_inst.arg2)
+            type2, value2, in_variable2 = frameHandler.get_arg_type_and_value(curr_inst.arg3)
             if type1 == 'string' and type2 == 'int':
                 # typy jsou spravne
                 index = int(value2)
@@ -247,12 +268,15 @@ def Main():
                     # indexace mimo retezec
                     errorHandler.exit_with_error(58, 'CHYBA: Indexace mimo retezec u instrukce GETCHAR')
             else:
-                errorHandler.exit_with_error(53, 'CHYBA: Operandy instrukce GETCHAR nejsou typu string a int (Typ1: {}, Typ2: {})'.format(type1, type2))
+                if in_variable1 or in_variable2:
+                    errorHandler.exit_with_error(53, 'CHYBA: Operandy instrukce GETCHAR nejsou typu string a int (Typ1: {}, Typ2: {})'.format(type1, type2))
+                else:
+                    errorHandler.exit_with_error(52, 'CHYBA: Operandy instrukce GETCHAR nejsou typu string a int (Typ1: {}, Typ2: {})'.format(type1, type2))
         # SETCHAR
         elif curr_inst.opcode == 'SETCHAR':
-            type1, value1 = frameHandler.get_arg_type_and_value(curr_inst.arg1)
-            type2, value2 = frameHandler.get_arg_type_and_value(curr_inst.arg2)
-            type3, value3 = frameHandler.get_arg_type_and_value(curr_inst.arg3)
+            type1, value1, in_variable1 = frameHandler.get_arg_type_and_value(curr_inst.arg1)
+            type2, value2, in_variable2 = frameHandler.get_arg_type_and_value(curr_inst.arg2)
+            type3, value3, in_variable3 = frameHandler.get_arg_type_and_value(curr_inst.arg3)
             if type1 == 'string' and type2 == 'int' and type3 == 'string':
                 # spravne typy
                 index = int(value2)
@@ -269,10 +293,13 @@ def Main():
                     value1 = ''.join(value1)
                     frameHandler.set_var(curr_inst.arg1, 'string', value1)
             else:
-                errorHandler.exit_with_error(53, 'CHYBA: Spatne typy operandu instrukce SETCHAR (Typ1: {}, Typ2: {}, Typ3: {})'.format(type1, type2, type3))
+                if in_variable1 or in_variable2 or in_variable3:
+                    errorHandler.exit_with_error(53, 'CHYBA: Spatne typy operandu instrukce SETCHAR (Typ1: {}, Typ2: {}, Typ3: {})'.format(type1, type2, type3))
+                else:
+                    errorHandler.exit_with_error(52, 'CHYBA: Spatne typy operandu instrukce SETCHAR (Typ1: {}, Typ2: {}, Typ3: {})'.format(type1, type2, type3))
         # INT2CHAR
         elif curr_inst.opcode == 'INT2CHAR':
-            type, value = frameHandler.get_arg_type_and_value(curr_inst.arg2)
+            type, value, in_variable = frameHandler.get_arg_type_and_value(curr_inst.arg2)
             if type == 'int':
                 # spravne typy operandu
                 try:
@@ -281,11 +308,14 @@ def Main():
                     errorHandler.exit_with_error(58, 'CHYBA: Nevalidni ordinalni hodnota znaku v Unicode instrukce INT2CHAR (Hodnota: {})'.format(value))
                 frameHandler.set_var(curr_inst.arg1, 'string', char)
             else:
-                errorHandler.exit_with_error(53, 'CHYBA: Spatny typ operandu instrukce INT2CHAR (Typ: {})'.format(type))
+                if in_variable:
+                    errorHandler.exit_with_error(53, 'CHYBA: Spatny typ promenne operandu instrukce INT2CHAR (Typ: {})'.format(type))
+                else:
+                    errorHandler.exit_with_error(5, 'CHYBA: Spatny typ operandu instrukce INT2CHAR (Typ: {})'.format(type))
         # STRI2INT
         elif curr_inst.opcode == 'STRI2INT':
-            type1, value1 = frameHandler.get_arg_type_and_value(curr_inst.arg2)
-            type2, value2 = frameHandler.get_arg_type_and_value(curr_inst.arg3)
+            type1, value1, in_variable1 = frameHandler.get_arg_type_and_value(curr_inst.arg2)
+            type2, value2, in_variable2 = frameHandler.get_arg_type_and_value(curr_inst.arg3)
             if type1 == 'string' and type2 == 'int':
                 # spravne typy operandu
                 index = int(value2)
@@ -297,10 +327,13 @@ def Main():
                     # indexace mimo retezec arg2
                     errorHandler.exit_with_error(58, 'CHYBA: Indexace mimo retezec u instrukce STR2INT')
             else:
-                errorHandler.exit_with_error(53, 'CHYBA: Spatne typy operandu instrukce STR2INT (Typ1: {}, Typ2: {}'.format(type1, type2))
+                if in_variable1 or in_variable2:
+                    errorHandler.exit_with_error(53, 'CHYBA: Spatne typy operandu instrukce STR2INT (Typ1: {}, Typ2: {}'.format(type1, type2))
+                else:
+                    errorHandler.exit_with_error(52, 'CHYBA: Spatne typy operandu instrukce STR2INT (Typ1: {}, Typ2: {}'.format(type1, type2))
         # READ
         elif curr_inst.opcode == 'READ':
-            type, value = frameHandler.get_arg_type_and_value(curr_inst.arg2)
+            type, value, in_variable = frameHandler.get_arg_type_and_value(curr_inst.arg2)
 
             try:
                 usr_input = input()
