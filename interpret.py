@@ -311,7 +311,7 @@ def Main():
                 if in_variable:
                     errorHandler.exit_with_error(53, 'CHYBA: Spatny typ promenne operandu instrukce INT2CHAR (Typ: {})'.format(type))
                 else:
-                    errorHandler.exit_with_error(5, 'CHYBA: Spatny typ operandu instrukce INT2CHAR (Typ: {})'.format(type))
+                    errorHandler.exit_with_error(52, 'CHYBA: Spatny typ operandu instrukce INT2CHAR (Typ: {})'.format(type))
         # STRI2INT
         elif curr_inst.opcode == 'STRI2INT':
             type1, value1, in_variable1 = frameHandler.get_arg_type_and_value(curr_inst.arg2)
