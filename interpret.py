@@ -109,10 +109,10 @@ def Main():
                     else:
                         frameHandler.set_var(curr_inst.arg1, 'int', str(int(value1) // int(value2)))
             else:
-                if in_variable1 or in_variable2:
-                    errorHandler.exit_with_error(53, 'CHYBA: Spatne typy operandu instrukce ADD (Typ1: {}, Typ2: {})'.format(type1, type2))
+                if (in_variable1 and type1 != 'int') or (in_variable2 and type2 != 'int'):
+                    errorHandler.exit_with_error(53, 'CHYBA: Spatne typy operandu instrukce {} (Typ1: {}, Typ2: {})'.format(curr_inst.opcode, type1, type2))
                 else:
-                    errorHandler.exit_with_error(52, 'CHYBA: Spatne typy operandu instrukce ADD (Typ1: {}, Typ2: {})'.format(type1, type2))
+                    errorHandler.exit_with_error(52, 'CHYBA: Spatne typy operandu instrukce {} (Typ1: {}, Typ2: {})'.format(curr_inst.opcode, type1, type2))
         # TYPE
         elif curr_inst.opcode == 'TYPE':
             type, value, in_variable = frameHandler.get_arg_type_and_value(curr_inst.arg2)
@@ -130,7 +130,7 @@ def Main():
                 frameHandler.set_var(curr_inst.arg1, 'string', value1+value2)
             else:
                 # nepovolene typy operandu
-                if in_variable1 or in_variable2:
+                if (in_variable1 and type1 != 'string') or (in_variable2 and type2 != 'string'):
                     errorHandler.exit_with_error(53, 'CHYBA: Spatne typy operandu instrukce CONCAT (Typ1: {}, Typ2: {})'.format(type1, type2))
                 else:
                     errorHandler.exit_with_error(52, 'CHYBA: Spatne typy operandu instrukce CONCAT (Typ1: {}, Typ2: {})'.format(type1, type2))
@@ -149,7 +149,7 @@ def Main():
                     frameHandler.set_var(curr_inst.arg1, 'bool', log_and)
             else:
                 # nepovolene typy operandu
-                if in_variable1 or in_variable2:
+                if (in_variable1 and type1 != 'bool') or (in_variable2 and type2 != 'bool'):
                     errorHandler.exit_with_error(53, 'CHYBA: Spatne typy operandu instrukce {} (Typ1: {}, Typ2: {})'.format(curr_inst.opcode, type1, type2))
                 else:
                     errorHandler.exit_with_error(52, 'CHYBA: Spatne typy operandu instrukce {} (Typ1: {}, Typ2: {})'.format(curr_inst.opcode, type1, type2))
@@ -268,7 +268,7 @@ def Main():
                     # indexace mimo retezec
                     errorHandler.exit_with_error(58, 'CHYBA: Indexace mimo retezec u instrukce GETCHAR')
             else:
-                if in_variable1 or in_variable2:
+                if (in_variable1 and type1 != 'string') or (in_variable2 and type2 != 'int'):
                     errorHandler.exit_with_error(53, 'CHYBA: Operandy instrukce GETCHAR nejsou typu string a int (Typ1: {}, Typ2: {})'.format(type1, type2))
                 else:
                     errorHandler.exit_with_error(52, 'CHYBA: Operandy instrukce GETCHAR nejsou typu string a int (Typ1: {}, Typ2: {})'.format(type1, type2))
@@ -293,7 +293,7 @@ def Main():
                     value1 = ''.join(value1)
                     frameHandler.set_var(curr_inst.arg1, 'string', value1)
             else:
-                if in_variable1 or in_variable2 or in_variable3:
+                if (in_variable1 and type1 != 'string') or (in_variable2 and type2 != 'int') or (in_variable3 and type3 != 'string'):
                     errorHandler.exit_with_error(53, 'CHYBA: Spatne typy operandu instrukce SETCHAR (Typ1: {}, Typ2: {}, Typ3: {})'.format(type1, type2, type3))
                 else:
                     errorHandler.exit_with_error(52, 'CHYBA: Spatne typy operandu instrukce SETCHAR (Typ1: {}, Typ2: {}, Typ3: {})'.format(type1, type2, type3))
@@ -327,7 +327,7 @@ def Main():
                     # indexace mimo retezec arg2
                     errorHandler.exit_with_error(58, 'CHYBA: Indexace mimo retezec u instrukce STR2INT')
             else:
-                if in_variable1 or in_variable2:
+                if (in_variable1 and type1 != 'string') or (in_variable2 and type2 != 'int'):
                     errorHandler.exit_with_error(53, 'CHYBA: Spatne typy operandu instrukce STR2INT (Typ1: {}, Typ2: {}'.format(type1, type2))
                 else:
                     errorHandler.exit_with_error(52, 'CHYBA: Spatne typy operandu instrukce STR2INT (Typ1: {}, Typ2: {}'.format(type1, type2))

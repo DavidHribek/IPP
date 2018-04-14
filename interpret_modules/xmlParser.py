@@ -72,7 +72,10 @@ class XmlParser(ErrorHandler):
         # test instrukci s duplicitnim order number
         if len(instruction_order_numbers) != len(set(instruction_order_numbers)):
             self.exit_with_error(31, 'CHYBA: Instrukce s duplicitni hodnotou atributu order')
-
+        # instrukce s negativnim nebo nulovym order number
+        for x in instruction_order_numbers:
+            if int(x) <= 0:
+                self.exit_with_error(31, 'CHYBA: Nepovoleny argument order instrukce')
     def checkInstSyntax(self):
         """Lexikalni a synt. analyza jednotlivych instrukci"""
 
