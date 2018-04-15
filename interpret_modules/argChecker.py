@@ -28,7 +28,10 @@ class ArgChecker(ErrorHandler):
         opts = opts[0]
         o, v = opts
         if o == '--help':
-            print('HELP TEXT TODO') # TODO
+            print('''Program načte XML reprezentaci programu ze zadaného souboru a tento program s využitím standardního vstupu a výstupu interpretuje. Vstupní XML reprezentace je např. generována skriptem parse.php ze zdrojového kódu v IPPcode18.\n
+Parametry skriptu:
+\t--help  vypise napovedu
+\t--source=file   vstupní soubor s XML reprezentací zdrojového kódu''')
             exit(0);
         elif o == '--source':
             self.source = v
