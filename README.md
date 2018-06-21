@@ -61,6 +61,6 @@ s příponou rc se vygeneruje soubor obsahující návratovou hodnotu 0.
 Testy budou umístěny v adresáři včetně případných podadresářů pro lepší kategorizaci testů.
 Adresářová struktura může mít libovolné zanoření. Není třeba uvažovat symbolické odkazy apod.
 
-## Příklad spuštění
-
+## Spuštění testů
+`php5.6 test.php --directory=tests --recursive > output.html`
 ## Dokumentace v souboru doc.pdf
