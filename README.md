@@ -15,7 +15,7 @@ Skript typu filtr (parse.php v jazyce PHP 5.6) **načte ze standardního vstupu 
 **zkontroluje lexikální a syntaktickou správnost kódu** a **vypíše na standardní
 výstup XML reprezentaci programu** dle specifikace v sekci 3.1. 
 
-####Tento skript bude pracovat s těmito parametry:
+#### Tento skript bude pracovat s těmito parametry:
 * **--help** viz společný parametr všech skriptů v sekci 2.2
 
 #### Chybové návratové kódy specifické pro analyzátor:
@@ -44,7 +44,7 @@ otestování správné funkčnosti obou předchozích programů včetně vygener
 v HTML 5 do standardního výstupu. Testovací skript nemusí u předchozích dvou skriptů testovat
 jejich dodatečnou funkčnost aktivovanou parametry příkazové řádky (s výjimkou potřeby parametru
 --source).
-####Tento skript bude pracovat s těmito parametry:
+#### Tento skript bude pracovat s těmito parametry:
 * --help viz společný parametr všech skriptů v sekci 2.2
 * --directory=path testy bude hledat v zadaném adresáři (chybí-li tento parametr, tak skript prochází aktuální adresář)
 * --recursive testy bude hledat nejen v zadaném adresáři, ale i rekurzivně ve všech jeho podadresářích
