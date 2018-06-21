@@ -1,4 +1,4 @@
-# Projekt do předmětu IPP - Principy programovacích jazyků 2018/2019
+# IPP - Principy programovacích jazyků 2018/2019
 
 ## Zadání
 
